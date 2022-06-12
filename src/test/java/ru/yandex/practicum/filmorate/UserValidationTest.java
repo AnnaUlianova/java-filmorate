@@ -4,7 +4,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -130,8 +131,8 @@ public class UserValidationTest {
         user.setBirthday(LocalDate.of(2000, 4, 5));
 
         //When
-        UserService service = new UserService();
-        service.createUser(user);
+        UserStorage storage = new InMemoryUserStorage();
+        storage.create(user);
 
         //Then
         assertEquals("Mike", user.getName());

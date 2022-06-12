@@ -7,12 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;
@@ -30,14 +28,6 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     private static final String ERROR = "error";
     private static final String PATH = "path";
     private static final String REASONS = "reasons";
-
-    @ExceptionHandler(value = ValidationException.class)
-    protected ResponseEntity<Object> handleNotValid(ValidationException e, WebRequest request) {
-        log.error("Not valid error: {}", e.getMessage());
-        Map<String, Object> body = getGeneralErrorBody(HttpStatus.INTERNAL_SERVER_ERROR, request);
-        body.put(REASONS, e.getMessage());
-        return handleExceptionInternal(e, body, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
-    }
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException e,

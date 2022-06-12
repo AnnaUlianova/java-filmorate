@@ -4,9 +4,7 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -15,7 +13,8 @@ import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FilmValidationTest {
 
@@ -164,12 +163,13 @@ public class FilmValidationTest {
         film.setReleaseDate(LocalDate.of(1800, 1, 1));
 
         //When
-        FilmService service = new FilmService();
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         //Then
-        assertThrows(ValidationException.class,
-                () -> service.createFilm(film),
-                "Release date should be later than 28.12.1895");
+        assertEquals(violations.size(), 1);
+
+        ConstraintViolation<Film> violation = violations.iterator().next();
+        assertEquals("Release date should be later than 28.12.1895", violation.getMessage());
     }
 
     @AfterAll
