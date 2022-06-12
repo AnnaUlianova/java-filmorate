@@ -1,48 +1,82 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 public class UserService {
 
-    private final Map<Long, User> users;
+    private final UserStorage storage;
 
-    private static long userId;
-
-    public UserService() {
-        users = new HashMap<>();
+    @Autowired
+    public UserService(UserStorage storage) {
+        this.storage = storage;
     }
 
     public User createUser(User user) {
         User newUser = validateName(user);
-        newUser.setId(++userId);
-        users.put(userId, newUser);
-        log.info("Created user: {}", users.get(user.getId()));
-        return users.get(user.getId());
+        return storage.create(newUser);
     }
 
-    public ResponseEntity<User> updateUser(User user) {
-        if (users.containsKey(user.getId())) {
-            users.put(user.getId(), user);
-            log.info("Updated user: {}", users.get(user.getId()));
-            return new ResponseEntity<>(users.get(user.getId()), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    public Optional<User> updateUser(User user) {
+        return storage.update(user);
     }
 
     public List<User> findAllUsers() {
-        log.debug("Current amount of users: {}", users.size());
-        return new ArrayList<>(users.values());
+        return storage.findAll();
+    }
+
+    public Optional<User> findUserById(long id) {
+        return storage.findById(id);
+    }
+
+    public Optional<User> deleteUserById(long id) {
+        return storage.deleteById(id);
+    }
+
+    public Optional<List<User>> getListOfFriends(long id) {
+        return storage.findById(id).map(user -> user.getFriends()
+                .stream()
+                .map(friendId -> storage.findById(friendId).get())
+                .collect(Collectors.toList()));
+    }
+
+    public Optional<List<User>> getListOfCommonFriends(long id, long otherId) {
+        return storage.findById(id).map(user -> user.getFriends()
+                .stream()
+                .filter(userId -> storage.findById(otherId).get().getFriends().contains(userId))
+                .map(otherUserId -> storage.findById(otherUserId).get())
+                .collect(Collectors.toList()));
+    }
+
+    public Optional<User> addToFriends(long id, long friendId) {
+        Optional<User> optUser = storage.findById(id);
+        Optional<User> optFriend = storage.findById(friendId);
+
+        if (optUser.isPresent() && optFriend.isPresent()) {
+            optUser.get().getFriends().add(friendId);
+            optFriend.get().getFriends().add(id);
+            return optFriend;
+        }
+        return Optional.empty();
+    }
+
+    public Optional<User> deleteFromFriends(long id, long friendId) {
+        Optional<User> optUser = storage.findById(id);
+        Optional<User> optFriend = storage.findById(friendId);
+
+        if (optUser.isPresent() && optFriend.isPresent()) {
+            optUser.get().getFriends().remove(friendId);
+            optFriend.get().getFriends().remove(id);
+            return optFriend;
+        }
+        return Optional.empty();
     }
 
     private User validateName(User user) {
