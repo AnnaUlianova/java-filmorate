@@ -39,7 +39,7 @@ public class FilmService {
         return storage.findById(id);
     }
 
-    public Optional<Film> deleteFilmById(long id) {
+    public boolean deleteFilmById(long id) {
         return storage.deleteById(id);
     }
 

@@ -23,15 +23,16 @@ public class InMemoryUserStorage implements UserStorage {
     public User create(User user) {
         user.setId(generateId());
         users.put(userId, user);
-        return users.get(user.getId());
+        return user;
     }
 
     @Override
     public Optional<User> update(User user) {
         if (users.containsKey(user.getId())) {
             users.put(user.getId(), user);
+            return Optional.of(user);
         }
-        return Optional.ofNullable(users.get(user.getId()));
+        return Optional.empty();
     }
 
     @Override
@@ -45,7 +46,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Optional<User> deleteById(long id) {
-        return Optional.ofNullable(users.remove(id));
+    public boolean deleteById(long id) {
+        return users.remove(id) != null;
     }
 }

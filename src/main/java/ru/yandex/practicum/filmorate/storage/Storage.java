@@ -13,5 +13,5 @@ public interface Storage<T> {
 
     Optional<T> findById(long id);
 
-    Optional<T> deleteById(long id);
+    boolean deleteById(long id);
 }

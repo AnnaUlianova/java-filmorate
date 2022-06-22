@@ -24,15 +24,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film create(Film film) {
         film.setId(generateId());
         films.put(filmId, film);
-        return films.get(film.getId());
+        return film;
     }
 
     @Override
     public Optional<Film> update(Film film) {
         if (films.containsKey(film.getId())) {
             films.put(film.getId(), film);
+            return Optional.of(film);
         }
-        return Optional.ofNullable(films.get(film.getId()));
+        return Optional.empty();
     }
 
     @Override
@@ -46,7 +47,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> deleteById(long id) {
-        return Optional.ofNullable(films.remove(id));
+    public boolean deleteById(long id) {
+        return films.remove(id) != null;
     }
 }

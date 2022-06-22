@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import javax.validation.Valid;
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping(
         value = "/films",
@@ -20,11 +21,6 @@ import java.util.List;
 public class FilmController {
 
     private final FilmService service;
-
-    @Autowired
-    public FilmController(FilmService service) {
-        this.service = service;
-    }
 
     @GetMapping
     public ResponseEntity<List<Film>> findAllFilms() {
@@ -50,8 +46,8 @@ public class FilmController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Film> deleteFilmById(@PathVariable long id) {
-        return service.deleteFilmById(id).map(film -> new ResponseEntity<>(film, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return service.deleteFilmById(id) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("/{id}/like/{userId}")

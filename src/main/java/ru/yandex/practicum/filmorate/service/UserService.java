@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,23 +37,26 @@ public class UserService {
         return storage.findById(id);
     }
 
-    public Optional<User> deleteUserById(long id) {
+    public boolean deleteUserById(long id) {
         return storage.deleteById(id);
     }
 
-    public Optional<List<User>> getListOfFriends(long id) {
-        return storage.findById(id).map(user -> user.getFriends()
-                .stream()
-                .map(friendId -> storage.findById(friendId).get())
+    public List<User> getListOfFriends(long id) {
+        List<User> users = new ArrayList<>();
+        storage.findById(id).map(user -> user.getFriends().stream()
+                .peek(friendId -> storage.findById(friendId).ifPresent(users::add))
                 .collect(Collectors.toList()));
+        return users;
     }
 
-    public Optional<List<User>> getListOfCommonFriends(long id, long otherId) {
-        return storage.findById(id).map(user -> user.getFriends()
+    public List<User> getListOfCommonFriends(long id, long otherId) {
+        List<User> users = new ArrayList<>();
+        storage.findById(id).map(user -> user.getFriends()
                 .stream()
                 .filter(userId -> storage.findById(otherId).get().getFriends().contains(userId))
-                .map(otherUserId -> storage.findById(otherUserId).get())
+                .peek(otherUserId -> storage.findById(otherUserId).ifPresent(users::add))
                 .collect(Collectors.toList()));
+       return users;
     }
 
     public Optional<User> addToFriends(long id, long friendId) {

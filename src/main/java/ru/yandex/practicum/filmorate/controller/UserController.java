@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import javax.validation.Valid;
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping(
         value = "/users",
@@ -20,11 +21,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService service;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.service = userService;
-    }
 
     @GetMapping
     public ResponseEntity<List<User>> findAllUsers() {
@@ -50,20 +46,18 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<User> deleteUserById(@PathVariable long id) {
-        return service.deleteUserById(id).map(user -> new ResponseEntity<>(user, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return service.deleteUserById(id) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/{id}/friends")
     public ResponseEntity<List<User>> findUserFriends(@PathVariable long id) {
-        return service.getListOfFriends(id).map(list -> new ResponseEntity<>(list, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return new ResponseEntity<>(service.getListOfFriends(id), HttpStatus.OK);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public ResponseEntity<List<User>> findCommonFriends(@PathVariable long id, @PathVariable long otherId) {
-        return service.getListOfCommonFriends(id, otherId).map(list -> new ResponseEntity<>(list, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return new ResponseEntity<>(service.getListOfCommonFriends(id, otherId), HttpStatus.OK);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
