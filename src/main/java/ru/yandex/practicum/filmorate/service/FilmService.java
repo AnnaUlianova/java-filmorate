@@ -1,56 +1,76 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 public class FilmService {
 
-    private final Map<Long, Film> films;
+    private final FilmStorage storage;
+    private final UserService userService;
 
-    private static long filmId;
-    private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
-
-    public FilmService() {
-        films = new HashMap<>();
+    @Autowired
+    public FilmService(FilmStorage storage, UserService userService) {
+        this.storage = storage;
+        this.userService = userService;
     }
 
     public Film createFilm(Film film) {
-        validate(film);
-        film.setId(++filmId);
-        films.put(filmId, film);
-        log.info("Created film: {}", films.get(film.getId()));
-        return films.get(film.getId());
+        return storage.create(film);
     }
 
-    public ResponseEntity<Film> updateFilm(Film film) {
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
-            log.info("Updated film: {}", films.get(film.getId()));
-            return new ResponseEntity<>(films.get(film.getId()), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    public Optional<Film> updateFilm(Film film) {
+        return storage.update(film);
     }
 
     public List<Film> findAllFilms() {
-        log.debug("Current amount of films: {}", films.size());
-        return new ArrayList<>(films.values());
+        return storage.findAll();
     }
 
-    private void validate(Film data) {
-        if (CINEMA_BIRTHDAY.isAfter(data.getReleaseDate())) {
-            throw new ValidationException("Release date should be later than 28.12.1895");
+    public Optional<Film> findFilmById(long id) {
+        return storage.findById(id);
+    }
+
+    public boolean deleteFilmById(long id) {
+        return storage.deleteById(id);
+    }
+
+    public Optional<Film> likeFilm(long id, long userId) {
+        Optional<User> optUser = userService.findUserById(userId);
+        Optional<Film> optFilm = storage.findById(id);
+
+        if (optUser.isPresent() && optFilm.isPresent()) {
+            optFilm.get().getLikes().add(userId);
+            return optFilm;
         }
+        return Optional.empty();
+    }
+
+    public Optional<Film> removeLikeOfFilm(long id, long userId) {
+        Optional<User> optUser = userService.findUserById(userId);
+        Optional<Film> optFilm = storage.findById(id);
+
+        if (optUser.isPresent() && optFilm.isPresent()) {
+            optFilm.get().getLikes().remove(userId);
+            return optFilm;
+        }
+        return Optional.empty();
+    }
+
+    public List<Film> findTopLikableFilms(long count) {
+
+        return storage.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Film::getAmountOfLikes).reversed())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }
