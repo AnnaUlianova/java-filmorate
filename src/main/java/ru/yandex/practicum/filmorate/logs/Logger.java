@@ -22,11 +22,16 @@ public class Logger {
     }
 
     @Around("controllers()")
-    public Object invoke(ProceedingJoinPoint joinPoint) throws Throwable {
+    public Object invoke(ProceedingJoinPoint joinPoint) {
         log.info("Enter: {}.{}(): argument[s] {}", joinPoint.getSignature().getDeclaringTypeName(),
                     joinPoint.getSignature().getName(), Arrays.toString(joinPoint.getArgs()));
 
-        final Object result = joinPoint.proceed();
+        final Object result;
+        try {
+            result = joinPoint.proceed();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
 
         log.info("Exit: {}.{}(): result {}", joinPoint.getSignature().getDeclaringTypeName(),
                 joinPoint.getSignature().getName(), result);
