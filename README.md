@@ -1,7 +1,7 @@
 # java-filmorate
 Backend на java для сервиса по работе с фильмами и оценками пользователей, возможностью получения списка фильмов с наивысшим рейтингом, рекомендованных к просмотру комьюнити.
 
-###Entity-relationship diagram###
+### Entity-relationship diagram ###
 ![ER-diagram for filmorate](FimorateDB.png)
 
 Выше представлена ER-диаграмма с указанием первичных ключей и видов связи.
