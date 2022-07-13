@@ -1,13 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
+import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@Builder
 public class Film {
 
     private long id;
@@ -22,7 +23,11 @@ public class Film {
     @Positive(message="Duration must be positive")
     private int duration;
 
-    private Set<Long> likes = new HashSet<>();
+    private MPA mpa;
+
+    private Set<Genre> genres;
+
+    private long likes_count;
 
     @NotNull
     private LocalDate releaseDate;
@@ -32,10 +37,6 @@ public class Film {
     @AssertTrue(message = "Release date should be later than 28.12.1895")
     private boolean isAfterCinemaBirthday() {
         return releaseDate.isAfter(CINEMA_BIRTHDAY);
-    }
-
-    public long getAmountOfLikes() {
-        return likes.size();
     }
 
 }
