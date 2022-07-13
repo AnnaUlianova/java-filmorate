@@ -5,4 +5,7 @@ import ru.yandex.practicum.filmorate.storage.Storage;
 
 public interface FilmStorage extends Storage<Film> {
 
+    boolean removeLikeFromFilm(long id, long userId);
+
+    boolean addLikeToFilm(long id, long userId);
 }

@@ -52,19 +52,18 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable long userId) {
-        return service.likeFilm(id, userId).map(film -> new ResponseEntity<>(film, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return service.likeFilm(id, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public ResponseEntity<Film> removeLikeOfFilm(@PathVariable long id, @PathVariable long userId) {
-        return service.removeLikeOfFilm(id, userId).map(film -> new ResponseEntity<>(film, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return service.removeLikeFromFilm(id, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/popular")
     public ResponseEntity<List<Film>> findTopLikableFilms(@RequestParam(defaultValue = "10") long count) {
         return new ResponseEntity<>(service.findTopLikableFilms(count), HttpStatus.OK);
     }
-
 }
