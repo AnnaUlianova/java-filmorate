@@ -48,7 +48,7 @@ public class FilmService {
         Optional<User> optUser = userService.findUserById(userId);
         Optional<Film> optFilm = storage.findById(id);
 
-        if (optUser.isPresent() && optFilm.isPresent() && optFilm.get().getLikes_count() > 0) {
+        if (optUser.isPresent() && optFilm.isPresent()) {
             return storage.addLikeToFilm(id, userId);
         }
         return false;
@@ -58,7 +58,7 @@ public class FilmService {
         Optional<User> optUser = userService.findUserById(userId);
         Optional<Film> optFilm = storage.findById(id);
 
-        if (optUser.isPresent() && optFilm.isPresent()) {
+        if (optUser.isPresent() && optFilm.isPresent() && optFilm.get().getLikes_count() > 0) {
             return storage.removeLikeFromFilm(id, userId);
         }
         return false;
