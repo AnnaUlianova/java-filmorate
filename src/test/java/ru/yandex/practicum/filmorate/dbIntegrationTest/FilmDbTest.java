@@ -58,8 +58,8 @@ public class FilmDbTest {
                                         "American fantasy swashbuckler film")
                                 .hasFieldOrPropertyWithValue("duration", 143)
                 );
-        assertEquals(1, filmOptional.get().getMpa().getId());
-        assertEquals("G", filmOptional.get().getMpa().getName());
+        assertEquals(2, filmOptional.get().getMpa().getId());
+        assertEquals("PG", filmOptional.get().getMpa().getName());
         assertEquals(1, genreSet.size());
         assertTrue(genreSet.contains(genre));
     }
@@ -151,8 +151,17 @@ public class FilmDbTest {
 
     @Test
     public void testUpdate() {
+        // Given
+        storage.create(Film.builder()
+                .name("Pirates of the Caribbean: The Curse of the Black Pearl")
+                .description("American fantasy swashbuckler film")
+                .duration(152)
+                .mpa(MPA.builder().id(1).name("G").build())
+                .releaseDate(LocalDate.of(2003, 7, 9))
+                .build());
         // When
         storage.update(Film.builder()
+                .id(1)
                 .name("Pirates of the Caribbean: At World's End")
                 .description("American fantasy swashbuckler film")
                 .duration(169)
