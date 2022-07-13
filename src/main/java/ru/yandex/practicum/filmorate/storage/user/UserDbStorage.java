@@ -83,15 +83,30 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getListOfFriends(long id) {
         String sqlQuery = "SELECT * FROM friendship f " +
-                "LEFT OUTER JOIN users u ON f.to_user_id = u.user_id " +
-                "WHERE from_user_id = ? OR (to_user_id = ? AND accepted = ?)";
-        return jdbcTemplate.query(sqlQuery, this::mapRowToUser, id, id, true);
+                "LEFT JOIN users u ON f.to_user_id = u.user_id " +
+                "WHERE from_user_id = ?";
+
+        String sqlQueryMutual = "SELECT * FROM friendship f " +
+                "LEFT JOIN users u ON f.from_user_id = u.user_id " +
+                "WHERE to_user_id = ? AND accepted = ?";
+
+        List<User> users = jdbcTemplate.query(sqlQuery, this::mapRowToUser, id);
+        users.addAll(jdbcTemplate.query(sqlQueryMutual, this::mapRowToUser, id, true));
+        return users;
+
     }
 
     private boolean hasMutualConnection(long id, long friendId) {
         String sqlQuery = "SELECT * FROM friendship WHERE (from_user_id = ? AND to_user_id = ? AND accepted = ?) " +
                 "OR (from_user_id = ? AND to_user_id = ? AND accepted = ?) ";
         SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id, friendId, true, friendId, id, true);
+        return sqlRowSet.next();
+    }
+
+    private boolean hasConnection(long id, long friendId) {
+        String sqlQuery = "SELECT * FROM friendship WHERE (from_user_id = ? AND to_user_id = ?) " +
+                "OR (from_user_id = ? AND to_user_id = ?) ";
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id, friendId, friendId, id);
         return sqlRowSet.next();
     }
 
@@ -109,7 +124,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public boolean addToFriends(long id, long friendId) {
-        if (hasMutualConnection(id, friendId)) {
+        if (hasConnection(id, friendId)) {
             String sql = "UPDATE friendship SET accepted = ? WHERE (to_user_id = ? AND from_user_id = ?) " +
                     "OR (to_user_id = ? AND from_user_id = ?)";
             return jdbcTemplate.update(sql, true, id, friendId, friendId, id) > 0;
