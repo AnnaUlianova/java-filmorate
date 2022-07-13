@@ -4,15 +4,18 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Long, User> users;
+    private final Map<Long, Set<Long>> friends;
     private static long userId;
 
     public InMemoryUserStorage() {
         users = new HashMap<>();
+        friends = new HashMap<>();
     }
 
     private long generateId() {
@@ -48,5 +51,33 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public boolean deleteById(long id) {
         return users.remove(id) != null;
+    }
+
+
+    @Override
+    public boolean addToFriends(long id, long friendId) {
+        if (friends.containsKey(id)) {
+            return friends.get(id).add(friendId);
+        }
+        Set<Long> userFriends = new HashSet<>();
+        userFriends.add(friendId);
+        friends.put(id, userFriends);
+        return true;
+    }
+
+    @Override
+    public boolean deleteFromFriends(long id, long friendId) {
+        if (friends.containsKey(id)) {
+            return friends.get(id).remove(friendId);
+        }
+        return false;
+    }
+
+    @Override
+    public List<User> getListOfFriends(long id) {
+        if (friends.containsKey(id)) {
+            return friends.get(id).stream().map(users::get).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 }
