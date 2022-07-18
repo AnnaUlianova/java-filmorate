@@ -70,10 +70,10 @@ public class UserDbStorage implements UserStorage {
                 user.getId()) > 0;
 
         // Delete all previous user's connections
-//        if (isUpdated) {
-//            jdbcTemplate.update("DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?",
-//                    user.getId(), user.getId());
-//        }
+        if (isUpdated) {
+            jdbcTemplate.update("DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?",
+                    user.getId(), user.getId());
+        }
         return isUpdated ? Optional.of(user) : Optional.empty();
     }
 

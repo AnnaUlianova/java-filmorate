@@ -35,6 +35,10 @@ public class FilmDbStorage implements FilmStorage {
     private static final String DELETE_FILM = "DELETE FROM films WHERE film_id = ?";
     private static final String ADD_LIKE = "INSERT INTO films_likes(film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE = "DELETE FROM films_likes WHERE film_id = ? AND user_id = ?";
+    private static final String GET_LIKES_COUNT = "UPDATE films SET likes_count = ? WHERE film_id = ?";
+    private static final String GET_FILM_GENRE = "SELECT genre_id FROM films_genres WHERE film_id = ?";
+    private static final String ADD_FILM_GENRE = "INSERT INTO films_genres(film_id, genre_id) VALUES (?, ?)";
+    private static final String DELETE_FILM_GENRE = "DELETE FROM films_genres WHERE film_id = ?";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
@@ -60,8 +64,7 @@ public class FilmDbStorage implements FilmStorage {
 
         if (film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update("INSERT INTO films_genres(film_id, genre_id) " +
-                        "values (?, ?)", filmId, genre.getId());
+                jdbcTemplate.update(ADD_FILM_GENRE, filmId, genre.getId());
             }
         }
         return findById(filmId).get();
@@ -78,14 +81,11 @@ public class FilmDbStorage implements FilmStorage {
                 film.getId()) > 0;
 
         if (isUpdated) {
-            String sqlGenresQuery = "DELETE FROM films_genres WHERE film_id = ?";
-            jdbcTemplate.update(sqlGenresQuery, film.getId());
+            jdbcTemplate.update(DELETE_FILM_GENRE, film.getId());
         }
-
         if (isUpdated && film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update("INSERT INTO films_genres(film_id, genre_id) " +
-                        "values (?, ?)", film.getId(), genre.getId());
+                jdbcTemplate.update(ADD_FILM_GENRE, film.getId(), genre.getId());
             }
         }
         return isUpdated ? Optional.of(findById(film.getId()).get()) : Optional.empty();
@@ -96,8 +96,7 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS, this::mapRowToFilm);
         for (Film film : films) {
             long id = film.getId();
-            String sqlGenreQuery = "SELECT genre_id FROM films_genres WHERE film_id = ?";
-            Set<Genre> genreSet = jdbcTemplate.queryForList(sqlGenreQuery, Long.class, id)
+            Set<Genre> genreSet = jdbcTemplate.queryForList(GET_FILM_GENRE, Long.class, id)
                     .stream()
                     .map(genreId -> genreStorage.findById(genreId).get())
                     .collect(Collectors.toSet());
@@ -112,8 +111,7 @@ public class FilmDbStorage implements FilmStorage {
             Film film = jdbcTemplate.queryForObject(FIND_FILM, this::mapRowToFilm, id);
             Optional<Film> optFilm = Optional.ofNullable(film);
             if (optFilm.isPresent()) {
-                String sqlGenreQuery = "SELECT genre_id FROM films_genres WHERE film_id = ?";
-                Set<Genre> genreSet = jdbcTemplate.queryForList(sqlGenreQuery, Long.class, id)
+                Set<Genre> genreSet = jdbcTemplate.queryForList(GET_FILM_GENRE, Long.class, id)
                         .stream()
                         .map(genreId -> genreStorage.findById(genreId).get())
                         .collect(Collectors.toSet());
@@ -134,10 +132,8 @@ public class FilmDbStorage implements FilmStorage {
     public boolean removeLikeFromFilm(long id, long userId) {
         boolean isRemoved = jdbcTemplate.update(DELETE_LIKE, id, userId) > 0;
         if (isRemoved) {
-            String sqlLikesQuery = "UPDATE films SET " +
-                    "likes_count = likes_count - 1 " +
-                    "WHERE film_id = ?";
-            jdbcTemplate.update(sqlLikesQuery, id);
+            long likesAmount = findById(id).get().getLikes_count() - 1;
+            jdbcTemplate.update(GET_LIKES_COUNT, likesAmount, id);
         }
         return isRemoved;
     }
@@ -147,8 +143,7 @@ public class FilmDbStorage implements FilmStorage {
         boolean isAdded = jdbcTemplate.update(ADD_LIKE, id, userId) > 0;
         if (isAdded) {
             long likesAmount = findById(id).get().getLikes_count() + 1;
-            String sqlLikesQuery = "UPDATE films SET likes_count = ? WHERE film_id = ?";
-            jdbcTemplate.update(sqlLikesQuery, likesAmount, id);
+            jdbcTemplate.update(GET_LIKES_COUNT, likesAmount, id);
         }
         return isAdded;
     }
