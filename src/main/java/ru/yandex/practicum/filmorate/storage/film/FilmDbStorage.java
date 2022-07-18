@@ -106,8 +106,8 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Optional<Film> findById(long id) {
         String sqlQuery = "SELECT * FROM films WHERE film_id = ?";
-        List<Film> result = jdbcTemplate.query(sqlQuery, this::mapRowToFilm, id);
-        Optional<Film> optFilm = result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+        Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
+        Optional<Film> optFilm = Optional.ofNullable(film);
         if (optFilm.isPresent()) {
             String sqlGenreQuery = "SELECT genre_id FROM films_genres WHERE film_id = ?";
             Set<Genre> genreSet = jdbcTemplate.queryForList(sqlGenreQuery, Long.class, id)

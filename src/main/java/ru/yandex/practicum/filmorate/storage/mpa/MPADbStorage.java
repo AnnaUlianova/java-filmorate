@@ -50,8 +50,8 @@ public class MPADbStorage implements MPAStorage {
     @Override
     public Optional<MPA> findById(long id) {
         String sqlQuery = "SELECT * FROM ratings WHERE rating_id = ?";
-        List<MPA> result = jdbcTemplate.query(sqlQuery, this::mapRowToMPA, id);
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+        MPA mpa = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToMPA, id);
+        return Optional.ofNullable(mpa);
     }
 
     @Override

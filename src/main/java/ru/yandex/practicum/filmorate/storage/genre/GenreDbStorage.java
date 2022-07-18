@@ -50,8 +50,8 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Optional<Genre> findById(long id) {
         String sqlQuery = "SELECT * FROM genres where genre_id = ?";
-        List<Genre> result = jdbcTemplate.query(sqlQuery, this::mapRowToGenre, id);
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+        Genre genre = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToGenre, id);
+        return Optional.ofNullable(genre);
     }
 
     @Override

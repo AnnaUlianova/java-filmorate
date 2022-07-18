@@ -76,8 +76,8 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> findById(long id) {
         String sqlQuery = "SELECT * FROM users WHERE user_id = ?";
-        List<User> result = jdbcTemplate.query(sqlQuery, this::mapRowToUser, id);
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+        User user = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToUser, id);
+        return Optional.ofNullable(user);
     }
 
     @Override
