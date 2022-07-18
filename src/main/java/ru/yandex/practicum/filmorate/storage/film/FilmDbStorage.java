@@ -95,12 +95,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> findAll() {
         List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS, this::mapRowToFilm);
         for (Film film : films) {
-            long id = film.getId();
-            Set<Genre> genreSet = jdbcTemplate.queryForList(GET_FILM_GENRE, Long.class, id)
-                    .stream()
-                    .map(genreId -> genreStorage.findById(genreId).get())
-                    .collect(Collectors.toSet());
-            film.setGenres(genreSet);
+            setFilmGenres(film);
         }
         return films;
     }
@@ -110,13 +105,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             Film film = jdbcTemplate.queryForObject(FIND_FILM, this::mapRowToFilm, id);
             Optional<Film> optFilm = Optional.ofNullable(film);
-            if (optFilm.isPresent()) {
-                Set<Genre> genreSet = jdbcTemplate.queryForList(GET_FILM_GENRE, Long.class, id)
-                        .stream()
-                        .map(genreId -> genreStorage.findById(genreId).get())
-                        .collect(Collectors.toSet());
-                optFilm.get().setGenres(genreSet);
-            }
+            optFilm.ifPresent(this::setFilmGenres);
             return optFilm;
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -146,6 +135,14 @@ public class FilmDbStorage implements FilmStorage {
             jdbcTemplate.update(GET_LIKES_COUNT, likesAmount, id);
         }
         return isAdded;
+    }
+
+    private void setFilmGenres(Film film) {
+        Set<Genre> genreSet = jdbcTemplate.queryForList(GET_FILM_GENRE, Long.class, film.getId())
+                .stream()
+                .map(genreId -> genreStorage.findById(genreId).get())
+                .collect(Collectors.toSet());
+        film.setGenres(genreSet);
     }
 
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
