@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -25,6 +26,15 @@ public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final GenreStorage genreStorage;
     private final MPAStorage mpaStorage;
+    private static final String CREATE_FILM = "INSERT INTO films(name, description, duration, release_date, " +
+            "rating_id) VALUES (?, ?, ?, ?, ?)";
+    private static final String UPDATE_FILM = "UPDATE films SET name = ?, description = ?, duration = ?, " +
+            "release_date = ?, rating_id = ? WHERE film_id = ?";
+    private static final String FIND_FILM = "SELECT * FROM films WHERE film_id = ?";
+    private static final String FIND_ALL_FILMS = "SELECT * FROM films";
+    private static final String DELETE_FILM = "DELETE FROM films WHERE film_id = ?";
+    private static final String ADD_LIKE = "INSERT INTO films_likes(film_id, user_id) VALUES (?, ?)";
+    private static final String DELETE_LIKE = "DELETE FROM films_likes WHERE film_id = ? AND user_id = ?";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
@@ -36,12 +46,9 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        String sqlQuery = "INSERT INTO films(name, description, duration, release_date, rating_id) " +
-                "values (?, ?, ?, ?, ?)";
-
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"film_id"});
+            PreparedStatement stmt = connection.prepareStatement(CREATE_FILM, new String[]{"film_id"});
             stmt.setString(1, film.getName());
             stmt.setString(2, film.getDescription());
             stmt.setInt(3, film.getDuration());
@@ -62,10 +69,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> update(Film film) {
-        String sqlQuery = "UPDATE films SET " +
-                "name = ?, description = ?, duration = ?, release_date = ?, rating_id = ? " +
-                "WHERE film_id = ?";
-        boolean isUpdated = jdbcTemplate.update(sqlQuery,
+        boolean isUpdated = jdbcTemplate.update(UPDATE_FILM,
                 film.getName(),
                 film.getDescription(),
                 film.getDuration(),
@@ -89,8 +93,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        String sqlQuery = "SELECT * FROM films";
-        List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
+        List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS, this::mapRowToFilm);
         for (Film film : films) {
             long id = film.getId();
             String sqlGenreQuery = "SELECT genre_id FROM films_genres WHERE film_id = ?";
@@ -105,30 +108,31 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> findById(long id) {
-        String sqlQuery = "SELECT * FROM films WHERE film_id = ?";
-        Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
-        Optional<Film> optFilm = Optional.ofNullable(film);
-        if (optFilm.isPresent()) {
-            String sqlGenreQuery = "SELECT genre_id FROM films_genres WHERE film_id = ?";
-            Set<Genre> genreSet = jdbcTemplate.queryForList(sqlGenreQuery, Long.class, id)
-                    .stream()
-                    .map(genreId -> genreStorage.findById(genreId).get())
-                    .collect(Collectors.toSet());
-            optFilm.get().setGenres(genreSet);
+        try {
+            Film film = jdbcTemplate.queryForObject(FIND_FILM, this::mapRowToFilm, id);
+            Optional<Film> optFilm = Optional.ofNullable(film);
+            if (optFilm.isPresent()) {
+                String sqlGenreQuery = "SELECT genre_id FROM films_genres WHERE film_id = ?";
+                Set<Genre> genreSet = jdbcTemplate.queryForList(sqlGenreQuery, Long.class, id)
+                        .stream()
+                        .map(genreId -> genreStorage.findById(genreId).get())
+                        .collect(Collectors.toSet());
+                optFilm.get().setGenres(genreSet);
+            }
+            return optFilm;
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        return optFilm;
     }
 
     @Override
     public boolean deleteById(long id) {
-        String sqlQuery = "DELETE FROM films WHERE film_id = ?";
-        return jdbcTemplate.update(sqlQuery, id) > 0;
+        return jdbcTemplate.update(DELETE_FILM, id) > 0;
     }
 
     @Override
     public boolean removeLikeFromFilm(long id, long userId) {
-        String sqlQuery = "DELETE FROM films_likes WHERE film_id = ? AND user_id = ?";
-        boolean isRemoved = jdbcTemplate.update(sqlQuery, id, userId) > 0;
+        boolean isRemoved = jdbcTemplate.update(DELETE_LIKE, id, userId) > 0;
         if (isRemoved) {
             String sqlLikesQuery = "UPDATE films SET " +
                     "likes_count = likes_count - 1 " +
@@ -140,9 +144,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public boolean addLikeToFilm(long id, long userId) {
-        String sqlQuery = "INSERT INTO films_likes(film_id, user_id) " +
-                "values (?, ?)";
-        boolean isAdded = jdbcTemplate.update(sqlQuery, id, userId) > 0;
+        boolean isAdded = jdbcTemplate.update(ADD_LIKE, id, userId) > 0;
         if (isAdded) {
             long likesAmount = findById(id).get().getLikes_count() + 1;
             String sqlLikesQuery = "UPDATE films SET likes_count = ? WHERE film_id = ?";

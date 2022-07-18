@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -17,6 +18,27 @@ import java.util.Optional;
 @Component
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
+    private static final String CREATE_USER = "INSERT INTO users(email, login, name, birthday) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_USER = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? " +
+            "WHERE user_id = ?";
+    private static final String FIND_USER = "SELECT * FROM users WHERE user_id = ?";
+    private static final String FIND_ALL_USERS = "SELECT * FROM users";
+    private static final String DELETE_USER = "DELETE FROM users WHERE user_id = ?";
+    private static final String GET_FRIENDS = "SELECT * FROM friendship f LEFT JOIN users u " +
+            "ON f.to_user_id = u.user_id WHERE from_user_id = ? UNION SELECT * FROM friendship f " +
+            "LEFT JOIN users u ON f.from_user_id = u.user_id WHERE to_user_id = ? AND accepted = ?";
+    private static final String UPDATE_FRIENDS = "UPDATE friendship SET accepted = ? WHERE (to_user_id = ? " +
+            "AND from_user_id = ?) OR (to_user_id = ? AND from_user_id = ?)";
+    private static final String DELETE_FRIEND = "DELETE FROM friendship WHERE (from_user_id = ? AND to_user_id = ?) " +
+            "OR (from_user_id = ? AND to_user_id = ?)";
+    private static final String DELETE_ALL_FRIENDS = "DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?";
+    private static final String ADD_FRIEND = "INSERT INTO friendship(to_user_id, from_user_id, accepted) " +
+            "VALUES (?, ?, ?)";
+    private static final String HAS_CONNECTION = "SELECT * FROM friendship WHERE (from_user_id = ? " +
+            "AND to_user_id = ?) OR (from_user_id = ? AND to_user_id = ?)";
+    private static final String HAS_MUTUAL_CONNECTION = "SELECT * FROM friendship WHERE (from_user_id = ? " +
+            "AND to_user_id = ? AND accepted = ?) OR (from_user_id = ? AND to_user_id = ? AND accepted = ?)";
+
 
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -24,11 +46,9 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        String sqlQuery = "INSERT INTO users(email, login, name, birthday) " +
-                "VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"user_id"});
+            PreparedStatement stmt = connection.prepareStatement(CREATE_USER, new String[]{"user_id"});
             stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getLogin());
             stmt.setString(3, user.getName());
@@ -42,9 +62,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> update(User user) {
-        String sqlQuery = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? " +
-                "WHERE user_id = ?";
-        boolean isUpdated = jdbcTemplate.update(sqlQuery,
+        boolean isUpdated = jdbcTemplate.update(UPDATE_USER,
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
@@ -52,82 +70,63 @@ public class UserDbStorage implements UserStorage {
                 user.getId()) > 0;
 
         // Delete all previous user's connections
-        if (isUpdated) {
-            jdbcTemplate.update("DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?",
-                    user.getId(), user.getId());
-        }
+//        if (isUpdated) {
+//            jdbcTemplate.update("DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?",
+//                    user.getId(), user.getId());
+//        }
         return isUpdated ? Optional.of(user) : Optional.empty();
     }
 
     @Override
     public boolean deleteById(long id) {
-        String sqlQuery = "DELETE FROM users WHERE user_id = ?";
-        boolean isDeleted = jdbcTemplate.update(sqlQuery, id) > 0;
-        jdbcTemplate.update("DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?", id, id);
+        boolean isDeleted = jdbcTemplate.update(DELETE_USER, id) > 0;
+        jdbcTemplate.update(DELETE_ALL_FRIENDS, id, id);
         return isDeleted;
     }
 
     @Override
     public List<User> findAll() {
-        String sqlQuery = "SELECT * FROM users";
-        return jdbcTemplate.query(sqlQuery, this::mapRowToUser);
+        return jdbcTemplate.query(FIND_ALL_USERS, this::mapRowToUser);
     }
 
     @Override
     public Optional<User> findById(long id) {
-        String sqlQuery = "SELECT * FROM users WHERE user_id = ?";
-        User user = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToUser, id);
-        return Optional.ofNullable(user);
+        try {
+            User user = jdbcTemplate.queryForObject(FIND_USER, this::mapRowToUser, id);
+            return Optional.ofNullable(user);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public List<User> getListOfFriends(long id) {
-        String sqlQuery = "SELECT * FROM friendship f " +
-                "LEFT JOIN users u ON f.to_user_id = u.user_id " +
-                "WHERE from_user_id = ?";
-
-        String sqlQueryMutual = "SELECT * FROM friendship f " +
-                "LEFT JOIN users u ON f.from_user_id = u.user_id " +
-                "WHERE to_user_id = ? AND accepted = ?";
-
-        List<User> users = jdbcTemplate.query(sqlQuery, this::mapRowToUser, id);
-        users.addAll(jdbcTemplate.query(sqlQueryMutual, this::mapRowToUser, id, true));
-        return users;
-
+        return jdbcTemplate.query(GET_FRIENDS, this::mapRowToUser, id, id, true);
     }
 
     private boolean hasMutualConnection(long id, long friendId) {
-        String sqlQuery = "SELECT * FROM friendship WHERE (from_user_id = ? AND to_user_id = ? AND accepted = ?) " +
-                "OR (from_user_id = ? AND to_user_id = ? AND accepted = ?) ";
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id, friendId, true, friendId, id, true);
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(HAS_MUTUAL_CONNECTION, id, friendId, true,
+                friendId, id, true);
         return sqlRowSet.next();
     }
 
     private boolean hasConnection(long id, long friendId) {
-        String sqlQuery = "SELECT * FROM friendship WHERE (from_user_id = ? AND to_user_id = ?) " +
-                "OR (from_user_id = ? AND to_user_id = ?) ";
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, id, friendId, friendId, id);
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(HAS_CONNECTION, id, friendId, friendId, id);
         return sqlRowSet.next();
     }
 
     private boolean addConnection(long id, long friendId) {
-        String sqlQuery = "INSERT INTO friendship(to_user_id, from_user_id, accepted) " +
-                "values (?, ?, ?)";
-        return jdbcTemplate.update(sqlQuery, friendId, id, false) > 0;
+        return jdbcTemplate.update(ADD_FRIEND, friendId, id, false) > 0;
     }
 
     private boolean deleteConnection(long id, long friendId) {
-        String sqlQuery = "DELETE FROM friendship WHERE (from_user_id = ? AND to_user_id = ?) OR " +
-                "(from_user_id = ? AND to_user_id = ?)";
-        return jdbcTemplate.update(sqlQuery, id, friendId, friendId, id) > 0;
+        return jdbcTemplate.update(DELETE_FRIEND, id, friendId, friendId, id) > 0;
     }
 
     @Override
     public boolean addToFriends(long id, long friendId) {
         if (hasConnection(id, friendId)) {
-            String sql = "UPDATE friendship SET accepted = ? WHERE (to_user_id = ? AND from_user_id = ?) " +
-                    "OR (to_user_id = ? AND from_user_id = ?)";
-            return jdbcTemplate.update(sql, true, id, friendId, friendId, id) > 0;
+            return jdbcTemplate.update(UPDATE_FRIENDS, true, id, friendId, friendId, id) > 0;
         } else {
             return addConnection(id, friendId);
         }

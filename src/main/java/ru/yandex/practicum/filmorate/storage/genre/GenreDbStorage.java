@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -16,6 +17,11 @@ import java.util.Optional;
 public class GenreDbStorage implements GenreStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private static final String CREATE_GENRE = "INSERT INTO genres(name) VALUES (?)";
+    private static final String UPDATE_GENRE = "UPDATE genres SET name = ? WHERE genre_id = ?";
+    private static final String FIND_GENRE = "SELECT * FROM genres where genre_id = ?";
+    private static final String FIND_ALL_GENRES = "SELECT * FROM genres ORDER BY genre_id";
+    private static final String DELETE_GENRE = "DELETE FROM genres where genre_id = ?";
 
     public GenreDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -23,10 +29,9 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public Genre create(Genre genre) {
-        String sqlQuery = "INSERT INTO genres(name) VALUES (?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"genre_id"});
+            PreparedStatement stmt = connection.prepareStatement(CREATE_GENRE, new String[]{"genre_id"});
             stmt.setString(1, genre.getName());
             return stmt;
         }, keyHolder);
@@ -36,28 +41,28 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public Optional<Genre> update(Genre genre) {
-        String sqlQuery = "UPDATE genres SET name = ? WHERE genre_id = ?";
-        boolean isUpdated = jdbcTemplate.update(sqlQuery, genre.getName(), genre.getId()) > 0;
+        boolean isUpdated = jdbcTemplate.update(UPDATE_GENRE, genre.getName(), genre.getId()) > 0;
         return isUpdated ? Optional.of(genre) : Optional.empty();
     }
 
     @Override
     public List<Genre> findAll() {
-        String sqlQuery = "SELECT * FROM genres ORDER BY genre_id";
-        return jdbcTemplate.query(sqlQuery, this::mapRowToGenre);
+        return jdbcTemplate.query(FIND_ALL_GENRES, this::mapRowToGenre);
     }
 
     @Override
     public Optional<Genre> findById(long id) {
-        String sqlQuery = "SELECT * FROM genres where genre_id = ?";
-        Genre genre = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToGenre, id);
-        return Optional.ofNullable(genre);
+        try {
+            Genre genre = jdbcTemplate.queryForObject(FIND_GENRE, this::mapRowToGenre, id);
+            return Optional.ofNullable(genre);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public boolean deleteById(long id) {
-        String sqlQuery = "DELETE FROM genres where genre_id = ?";
-        return jdbcTemplate.update(sqlQuery, id) > 0;
+        return jdbcTemplate.update(DELETE_GENRE, id) > 0;
     }
 
     public Genre mapRowToGenre(ResultSet resultSet, int rowNum) throws SQLException {

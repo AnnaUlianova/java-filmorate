@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.mpa;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -16,6 +17,11 @@ import java.util.Optional;
 public class MPADbStorage implements MPAStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private static final String CREATE_MPA = "INSERT INTO ratings(name) VALUES (?)";
+    private static final String UPDATE_MPA = "UPDATE ratings SET name = ? WHERE rating_id = ?";
+    private static final String FIND_MPA = "SELECT * FROM ratings WHERE rating_id = ?";
+    private static final String FIND_ALL_MPA = "SELECT * FROM ratings ORDER BY rating_id";
+    private static final String DELETE_MPA = "DELETE FROM ratings WHERE rating_id = ?";
 
     public MPADbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -23,10 +29,9 @@ public class MPADbStorage implements MPAStorage {
 
     @Override
     public MPA create(MPA mpa) {
-        String sqlQuery = "INSERT INTO ratings(name) VALUES (?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"rating_id"});
+            PreparedStatement stmt = connection.prepareStatement(CREATE_MPA, new String[]{"rating_id"});
             stmt.setString(1, mpa.getName());
             return stmt;
         }, keyHolder);
@@ -36,28 +41,28 @@ public class MPADbStorage implements MPAStorage {
 
     @Override
     public Optional<MPA> update(MPA mpa) {
-        String sqlQuery = "UPDATE ratings SET name = ? WHERE rating_id = ?";
-        boolean isUpdated = jdbcTemplate.update(sqlQuery, mpa.getName(), mpa.getId()) > 0;
+        boolean isUpdated = jdbcTemplate.update(UPDATE_MPA, mpa.getName(), mpa.getId()) > 0;
         return isUpdated ? Optional.of(mpa) : Optional.empty();
     }
 
     @Override
     public List<MPA> findAll() {
-        String sqlQuery = "SELECT * FROM ratings ORDER BY rating_id";
-        return jdbcTemplate.query(sqlQuery, this::mapRowToMPA);
+        return jdbcTemplate.query(FIND_ALL_MPA, this::mapRowToMPA);
     }
 
     @Override
     public Optional<MPA> findById(long id) {
-        String sqlQuery = "SELECT * FROM ratings WHERE rating_id = ?";
-        MPA mpa = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToMPA, id);
-        return Optional.ofNullable(mpa);
+        try {
+            MPA mpa = jdbcTemplate.queryForObject(FIND_MPA, this::mapRowToMPA, id);
+            return Optional.ofNullable(mpa);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public boolean deleteById(long id) {
-        String sqlQuery = "DELETE FROM ratings where rating_id = ?";
-        return jdbcTemplate.update(sqlQuery, id) > 0;
+        return jdbcTemplate.update(DELETE_MPA, id) > 0;
     }
 
     private MPA mapRowToMPA(ResultSet resultSet, int rowNum) throws SQLException {
