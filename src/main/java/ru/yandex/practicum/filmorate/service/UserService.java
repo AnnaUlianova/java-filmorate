@@ -1,11 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,7 +16,7 @@ public class UserService {
     private final UserStorage storage;
 
     @Autowired
-    public UserService(UserStorage storage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage storage) { // inMemoryUserStorage
         this.storage = storage;
     }
 
@@ -42,45 +42,33 @@ public class UserService {
     }
 
     public List<User> getListOfFriends(long id) {
-        List<User> users = new ArrayList<>();
-        storage.findById(id).map(user -> user.getFriends().stream()
-                .peek(friendId -> storage.findById(friendId).ifPresent(users::add))
-                .collect(Collectors.toList()));
-        return users;
+        return storage.getListOfFriends(id);
     }
 
     public List<User> getListOfCommonFriends(long id, long otherId) {
-        List<User> users = new ArrayList<>();
-        storage.findById(id).map(user -> user.getFriends()
-                .stream()
-                .filter(userId -> storage.findById(otherId).get().getFriends().contains(userId))
-                .peek(otherUserId -> storage.findById(otherUserId).ifPresent(users::add))
-                .collect(Collectors.toList()));
-       return users;
+        return getListOfFriends(id).stream()
+                .filter(getListOfFriends(otherId)::contains)
+                .collect(Collectors.toList());
     }
 
-    public Optional<User> addToFriends(long id, long friendId) {
+    public boolean addToFriends(long id, long friendId) {
         Optional<User> optUser = storage.findById(id);
         Optional<User> optFriend = storage.findById(friendId);
 
         if (optUser.isPresent() && optFriend.isPresent()) {
-            optUser.get().getFriends().add(friendId);
-            optFriend.get().getFriends().add(id);
-            return optFriend;
+            return storage.addToFriends(id, friendId);
         }
-        return Optional.empty();
+        return false;
     }
 
-    public Optional<User> deleteFromFriends(long id, long friendId) {
+    public boolean deleteFromFriends(long id, long friendId) {
         Optional<User> optUser = storage.findById(id);
         Optional<User> optFriend = storage.findById(friendId);
 
         if (optUser.isPresent() && optFriend.isPresent()) {
-            optUser.get().getFriends().remove(friendId);
-            optFriend.get().getFriends().remove(id);
-            return optFriend;
+            return storage.deleteFromFriends(id, friendId);
         }
-        return Optional.empty();
+        return false;
     }
 
     private User validateName(User user) {

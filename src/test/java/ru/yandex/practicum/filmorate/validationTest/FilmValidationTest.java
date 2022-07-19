@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.validationTest;
 
 
 import org.junit.jupiter.api.AfterAll;
@@ -30,11 +30,12 @@ public class FilmValidationTest {
     @Test
     public void test1_shouldHaveNoViolations() {
         //Given
-        Film film = new Film();
-        film.setName("Pirates of the Caribbean: The Curse of the Black Pearl");
-        film.setDescription("American fantasy swashbuckler film");
-        film.setDuration(143);
-        film.setReleaseDate(LocalDate.of(2003, 7, 9));
+        Film film = Film.builder()
+                .name("Pirates of the Caribbean: The Curse of the Black Pearl")
+                .description("American fantasy swashbuckler film")
+                .duration(143)
+                .releaseDate(LocalDate.of(2003, 7, 9))
+                .build();
 
         //When
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -46,11 +47,12 @@ public class FilmValidationTest {
     @Test
     public void test2_shouldDetectInvalidName() {
         //Given
-        Film film = new Film();
-        film.setName("");
-        film.setDescription("American fantasy swashbuckler film");
-        film.setDuration(143);
-        film.setReleaseDate(LocalDate.of(2003, 7, 9));
+        Film film = Film.builder()
+                .name("")
+                .description("American fantasy swashbuckler film")
+                .duration(143)
+                .releaseDate(LocalDate.of(2003, 7, 9))
+                .build();
 
         //When
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -67,11 +69,12 @@ public class FilmValidationTest {
     @Test
     public void test3_shouldDetectInvalidDescriptionForEmptyData() {
         //Given
-        Film film = new Film();
-        film.setName("Pirates of the Caribbean: The Curse of the Black Pearl");
-        film.setDescription("");
-        film.setDuration(143);
-        film.setReleaseDate(LocalDate.of(2003, 7, 9));
+        Film film = Film.builder()
+                .name("Pirates of the Caribbean: The Curse of the Black Pearl")
+                .description("")
+                .duration(143)
+                .releaseDate(LocalDate.of(2003, 7, 9))
+                .build();
 
         //When
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -87,18 +90,19 @@ public class FilmValidationTest {
     @Test
     public void test4_shouldDetectInvalidDescriptionForTooManyCharacters() {
         //Given
-        Film film = new Film();
-        film.setName("Pirates of the Caribbean: The Curse of the Black Pearl");
-        film.setDescription("In 1720, while sailing to Port Royal, Jamaica aboard HMS Dauntless, " +
+        Film film = Film.builder()
+                .name("Pirates of the Caribbean: The Curse of the Black Pearl")
+                .description("In 1720, while sailing to Port Royal, Jamaica aboard HMS Dauntless, " +
                         "Governor Weatherby Swann, his daughter Elizabeth and crew encounter a shipwreck " +
                         "and recover a boy, Will Turner. Elizabeth discovers a golden pirate medallion " +
                         "around his neck, and takes it. Eight years later, Captain James Norrington " +
                         "is promoted to commodore and proposes to Elizabeth. Her corset makes her faint " +
                         "and fall into the sea, causing the medallion to emit a pulse. Captain Jack Sparrow, " +
                         "having just arrived in Port Royal to commandeer a ship, rescues Elizabeth. " +
-                        "Norrington identifies Jack as a pirate, and a chase ensues.");
-        film.setDuration(143);
-        film.setReleaseDate(LocalDate.of(2003, 7, 9));
+                        "Norrington identifies Jack as a pirate, and a chase ensues.")
+                .duration(143)
+                .releaseDate(LocalDate.of(2003, 7, 9))
+                .build();
 
         //When
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -114,11 +118,12 @@ public class FilmValidationTest {
     @Test
     public void test5_shouldDetectInvalidDurationForNegativeValue() {
         //Given
-        Film film = new Film();
-        film.setName("Pirates of the Caribbean: The Curse of the Black Pearl");
-        film.setDescription("American fantasy swashbuckler film");
-        film.setDuration(-143);
-        film.setReleaseDate(LocalDate.of(2003, 7, 9));
+        Film film = Film.builder()
+                .name("Pirates of the Caribbean: The Curse of the Black Pearl")
+                .description("American fantasy swashbuckler film")
+                .duration(-143)
+                .releaseDate(LocalDate.of(2003, 7, 9))
+                .build();
 
         //When
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -135,11 +140,12 @@ public class FilmValidationTest {
     @Test
     public void test6_shouldDetectInvalidDurationForZeroValue() {
         //Given
-        Film film = new Film();
-        film.setName("Pirates of the Caribbean: The Curse of the Black Pearl");
-        film.setDescription("American fantasy swashbuckler film");
-        film.setDuration(0);
-        film.setReleaseDate(LocalDate.of(2003, 7, 9));
+        Film film = Film.builder()
+                .name("Pirates of the Caribbean: The Curse of the Black Pearl")
+                .description("American fantasy swashbuckler film")
+                .duration(0)
+                .releaseDate(LocalDate.of(2003, 7, 9))
+                .build();
 
         //When
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
@@ -156,11 +162,12 @@ public class FilmValidationTest {
     @Test
     public void test7_shouldDetectInvalidReleaseDate() {
         //Given
-        Film film = new Film();
-        film.setName("Pirates of the Caribbean: The Curse of the Black Pearl");
-        film.setDescription("American fantasy swashbuckler film");
-        film.setDuration(143);
-        film.setReleaseDate(LocalDate.of(1800, 1, 1));
+        Film film = Film.builder()
+                .name("Pirates of the Caribbean: The Curse of the Black Pearl")
+                .description("American fantasy swashbuckler film")
+                .duration(143)
+                .releaseDate(LocalDate.of(1800, 1, 1))
+                .build();
 
         //When
         Set<ConstraintViolation<Film>> violations = validator.validate(film);

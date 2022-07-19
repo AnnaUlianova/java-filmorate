@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -18,8 +19,8 @@ public class FilmService {
     private final UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage storage, UserService userService) {
-        this.storage = storage;
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, UserService userService) { // inMemoryFilmStorage
+        this.storage = filmStorage;
         this.userService = userService;
     }
 
@@ -43,33 +44,30 @@ public class FilmService {
         return storage.deleteById(id);
     }
 
-    public Optional<Film> likeFilm(long id, long userId) {
+    public boolean likeFilm(long id, long userId) {
         Optional<User> optUser = userService.findUserById(userId);
         Optional<Film> optFilm = storage.findById(id);
 
         if (optUser.isPresent() && optFilm.isPresent()) {
-            optFilm.get().getLikes().add(userId);
-            return optFilm;
+            return storage.addLikeToFilm(id, userId);
         }
-        return Optional.empty();
+        return false;
     }
 
-    public Optional<Film> removeLikeOfFilm(long id, long userId) {
+    public boolean removeLikeFromFilm(long id, long userId) {
         Optional<User> optUser = userService.findUserById(userId);
         Optional<Film> optFilm = storage.findById(id);
 
-        if (optUser.isPresent() && optFilm.isPresent()) {
-            optFilm.get().getLikes().remove(userId);
-            return optFilm;
+        if (optUser.isPresent() && optFilm.isPresent() && optFilm.get().getLikes_count() > 0) {
+            return storage.removeLikeFromFilm(id, userId);
         }
-        return Optional.empty();
+        return false;
     }
 
     public List<Film> findTopLikableFilms(long count) {
-
         return storage.findAll()
                 .stream()
-                .sorted(Comparator.comparing(Film::getAmountOfLikes).reversed())
+                .sorted(Comparator.comparing(Film::getLikes_count).reversed())
                 .limit(count)
                 .collect(Collectors.toList());
     }

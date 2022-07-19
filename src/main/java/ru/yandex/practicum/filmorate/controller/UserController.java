@@ -62,13 +62,13 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public ResponseEntity<User> addToFriends(@PathVariable long id, @PathVariable long friendId) {
-        return service.addToFriends(id, friendId).map(user -> new ResponseEntity<>(user, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return service.addToFriends(id, friendId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public ResponseEntity<User> deleteFromFriends(@PathVariable long id, @PathVariable long friendId) {
-        return service.deleteFromFriends(id, friendId).map(user -> new ResponseEntity<>(user, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        return service.deleteFromFriends(id, friendId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 }
