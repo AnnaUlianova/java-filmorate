@@ -39,6 +39,14 @@ public class FilmDbStorage implements FilmStorage {
     private static final String GET_FILM_GENRE = "SELECT genre_id FROM films_genres WHERE film_id = ?";
     private static final String ADD_FILM_GENRE = "INSERT INTO films_genres(film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRE = "DELETE FROM films_genres WHERE film_id = ?";
+    private static final String FIND_TOP_FILMS = "SELECT * FROM films ORDER BY likes_count DESC LIMIT ?";
+    private static final String FIND_TOP_FILMS_BY_GENRE = "SELECT * FROM films WHERE film_id IN " +
+            "(SELECT film_id FROM films_genres WHERE genre_id = ?) ORDER BY likes_count DESC LIMIT ?";
+    private static final String FIND_TOP_FILMS_BY_YEAR = "SELECT * FROM films WHERE " +
+            "EXTRACT(YEAR FROM release_date) = ? ORDER BY likes_count DESC LIMIT ?";
+    private static final String FIND_TOP_FILMS_BY_YEAR_AND_GENRE = "SELECT * FROM films WHERE film_id IN " +
+            "(SELECT film_id FROM films_genres WHERE genre_id = ?) AND EXTRACT(YEAR FROM release_date) = ? " +
+            "ORDER BY likes_count DESC LIMIT ?";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
@@ -131,6 +139,38 @@ public class FilmDbStorage implements FilmStorage {
             jdbcTemplate.update(GET_LIKES_COUNT, likesAmount, id);
         }
         return isAdded;
+    }
+
+    public List<Film> findTopLikableFilms(long count) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS, this::mapRowToFilm, count);
+        for (Film film : films) {
+            setGenresFromDB(film);
+        }
+        return films;
+    }
+
+    public List<Film> findTopFilmsByGenre(long count, int genreId) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_GENRE, this::mapRowToFilm, genreId, count);
+        for (Film film : films) {
+            setGenresFromDB(film);
+        }
+        return films;
+    }
+
+    public List<Film> findTopFilmsByYear(long count, int year) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_YEAR, this::mapRowToFilm, year, count);
+        for (Film film : films) {
+            setGenresFromDB(film);
+        }
+        return films;
+    }
+    public List<Film> findTopFilmsByGenreAndYear(long count, int genreId, int year) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_YEAR_AND_GENRE, this::mapRowToFilm,
+                genreId, year, count);
+        for (Film film : films) {
+            setGenresFromDB(film);
+        }
+        return films;
     }
 
     private void setGenresFromDB(Film film) {
