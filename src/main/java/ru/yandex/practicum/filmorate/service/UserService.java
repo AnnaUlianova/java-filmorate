@@ -42,13 +42,20 @@ public class UserService {
     }
 
     public List<User> getListOfFriends(long id) {
-        return storage.getListOfFriends(id);
+        if (storage.findById(id).isPresent()) {
+            return storage.getListOfFriends(id);
+        }
+        return null;
     }
 
     public List<User> getListOfCommonFriends(long id, long otherId) {
-        return getListOfFriends(id).stream()
-                .filter(getListOfFriends(otherId)::contains)
-                .collect(Collectors.toList());
+        List<User> userFriends = getListOfFriends(id);
+        List<User> otherUserFriends = getListOfFriends(otherId);
+        if (userFriends != null && otherUserFriends != null)
+            return userFriends.stream()
+                    .filter(otherUserFriends::contains)
+                    .collect(Collectors.toList());
+        return null;
     }
 
     public boolean addToFriends(long id, long friendId) {
