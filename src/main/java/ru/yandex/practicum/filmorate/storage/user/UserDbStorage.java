@@ -31,7 +31,6 @@ public class UserDbStorage implements UserStorage {
             "AND from_user_id = ?) OR (to_user_id = ? AND from_user_id = ?)";
     private static final String DELETE_FRIEND = "DELETE FROM friendship WHERE (from_user_id = ? AND to_user_id = ?) " +
             "OR (from_user_id = ? AND to_user_id = ?)";
-    private static final String DELETE_ALL_FRIENDS = "DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?";
     private static final String ADD_FRIEND = "INSERT INTO friendship(to_user_id, from_user_id, accepted) " +
             "VALUES (?, ?, ?)";
     private static final String HAS_CONNECTION = "SELECT * FROM friendship WHERE (from_user_id = ? " +
@@ -70,18 +69,16 @@ public class UserDbStorage implements UserStorage {
                 user.getId()) > 0;
 
         // Delete all previous user's connections
-        if (isUpdated) {
-            jdbcTemplate.update("DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?",
-                    user.getId(), user.getId());
-        }
+//        if (isUpdated) {
+//            jdbcTemplate.update("DELETE FROM friendship WHERE to_user_id = ? OR from_user_id = ?",
+//                    user.getId(), user.getId());
+//        }
         return isUpdated ? Optional.of(user) : Optional.empty();
     }
 
     @Override
     public boolean deleteById(long id) {
-        boolean isDeleted = jdbcTemplate.update(DELETE_USER, id) > 0;
-        jdbcTemplate.update(DELETE_ALL_FRIENDS, id, id);
-        return isDeleted;
+        return jdbcTemplate.update(DELETE_USER, id) > 0;
     }
 
     @Override
