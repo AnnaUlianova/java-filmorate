@@ -5,6 +5,8 @@ import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.util.List;
 
+import java.util.Collection;
+
 public interface FilmStorage extends Storage<Film> {
 
     boolean removeLikeFromFilm(long id, long userId);
@@ -15,4 +17,6 @@ public interface FilmStorage extends Storage<Film> {
     List<Film> findTopFilmsByGenre(long count, int genreId);
     List<Film> findTopFilmsByYear(long count, int year);
     List<Film> findTopLikableFilms(long count);
+
+    Collection<Film> getDirectorFilms(long DirectorId, String sortBy);
 }

@@ -10,8 +10,11 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -103,5 +106,9 @@ public class FilmService {
         if (film.getReleaseDate().isBefore(CINEMA_BIRTHDAY)) {
             throw new ValidationException("Release date should be later than 28.12.1895");
         }
+    }
+
+    public Collection<Film> getDirectorFilms(long directorId, String sortBy) {
+        return storage.getDirectorFilms(directorId, sortBy);
     }
 }

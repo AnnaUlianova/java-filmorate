@@ -27,6 +27,8 @@ public class Film {
 
     private Set<Genre> genres;
 
+    private Set<Director> directors;
+
     private long likes_count;
 
     @NotNull
