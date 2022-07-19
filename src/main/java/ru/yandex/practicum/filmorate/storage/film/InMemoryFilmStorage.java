@@ -110,4 +110,24 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.get(id).setLikes_count(likes.get(id).size());
         return true;
     }
+
+    @Override
+    public List<Film> findTopFilmsByGenreAndYear(long count, int genreId, int year) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findTopFilmsByGenre(long count, int genreId) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findTopFilmsByYear(long count, int year) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findTopLikableFilms(long count) {
+        return null;
+    }
 }
