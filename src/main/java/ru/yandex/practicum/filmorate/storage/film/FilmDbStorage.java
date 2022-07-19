@@ -61,13 +61,12 @@ public class FilmDbStorage implements FilmStorage {
             return stmt;
         }, keyHolder);
         long filmId = keyHolder.getKey().longValue();
+        film.setId(filmId);
+        addGenreIdsToDB(film);
 
-        if (film.getGenres() != null) {
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update(ADD_FILM_GENRE, filmId, genre.getId());
-            }
-        }
-        return findById(filmId).get();
+        setGenresFromDB(film);
+        setRatingFromDB(film);
+        return film;
     }
 
     @Override
@@ -79,23 +78,20 @@ public class FilmDbStorage implements FilmStorage {
                 film.getReleaseDate(),
                 film.getMpa().getId(),
                 film.getId()) > 0;
-
         if (isUpdated) {
             jdbcTemplate.update(DELETE_FILM_GENRE, film.getId());
+            addGenreIdsToDB(film);
         }
-        if (isUpdated && film.getGenres() != null) {
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update(ADD_FILM_GENRE, film.getId(), genre.getId());
-            }
-        }
-        return isUpdated ? Optional.of(findById(film.getId()).get()) : Optional.empty();
+        setGenresFromDB(film);
+        setRatingFromDB(film);
+        return isUpdated ? Optional.of(film) : Optional.empty();
     }
 
     @Override
     public List<Film> findAll() {
         List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS, this::mapRowToFilm);
         for (Film film : films) {
-            setFilmGenres(film);
+            setGenresFromDB(film);
         }
         return films;
     }
@@ -105,7 +101,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             Film film = jdbcTemplate.queryForObject(FIND_FILM, this::mapRowToFilm, id);
             Optional<Film> optFilm = Optional.ofNullable(film);
-            optFilm.ifPresent(this::setFilmGenres);
+            optFilm.ifPresent(this::setGenresFromDB);
             return optFilm;
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -137,12 +133,24 @@ public class FilmDbStorage implements FilmStorage {
         return isAdded;
     }
 
-    private void setFilmGenres(Film film) {
+    private void setGenresFromDB(Film film) {
         Set<Genre> genreSet = jdbcTemplate.queryForList(GET_FILM_GENRE, Long.class, film.getId())
                 .stream()
                 .map(genreId -> genreStorage.findById(genreId).get())
                 .collect(Collectors.toSet());
         film.setGenres(genreSet);
+    }
+
+    private void setRatingFromDB(Film film) {
+        film.setMpa(mpaStorage.findById(film.getMpa().getId()).get());
+    }
+
+    private void addGenreIdsToDB(Film film) {
+        if (film.getGenres() != null) {
+            for (Genre genre : film.getGenres()) {
+                jdbcTemplate.update(ADD_FILM_GENRE, film.getId(), genre.getId());
+            }
+        }
     }
 
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
