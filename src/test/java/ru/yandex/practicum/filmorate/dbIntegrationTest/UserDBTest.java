@@ -225,4 +225,29 @@ public class UserDBTest {
         assertEquals(1, storage.getListOfFriends(2).size());
         assertTrue(storage.getListOfFriends(2).contains(user1));
     }
+
+    @Test
+    public void testDeleteByIdFromFriendship() {
+        // Given
+        storage.create(User.builder()
+                .email("mike@mail.ru")
+                .login("Mike123")
+                .name("Mike")
+                .birthday(LocalDate.of(2000, 4, 5))
+                .build());
+        storage.create(User.builder()
+                .email("tom@mail.ru")
+                .login("Tom")
+                .name("Tom")
+                .birthday(LocalDate.of(1994, 1, 7))
+                .build());
+        storage.addToFriends(1, 2);
+        storage.addToFriends(2, 1);
+        // When
+        boolean isDeleted = storage.deleteById(1);
+        // Then
+        assertTrue(isDeleted);
+        assertEquals(1, storage.findAll().size());
+        System.out.println(storage.getListOfFriends(2));
+    }
 }
