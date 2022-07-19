@@ -18,7 +18,7 @@ public class UserService {
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage storage) { // inMemoryUserStorage
         this.storage = storage;
-    } // userDbStorage
+    }
 
     public User createUser(User user) {
         User newUser = validateName(user);
