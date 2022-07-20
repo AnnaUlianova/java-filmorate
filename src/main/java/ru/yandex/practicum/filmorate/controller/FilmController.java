@@ -67,22 +67,20 @@ public class FilmController {
     public ResponseEntity<List<Film>> findTopLikableFilms(@RequestParam(defaultValue = "10") long count,
                                                           @RequestParam Optional<Integer> genreId,
                                                           @RequestParam Optional<Integer> year) {
-        List<Film> films;
         if (genreId.isPresent() && year.isPresent()) {
-            films = service.findTopFilmsByGenreAndYear(count, genreId.get(), year.get());
-            return films == null ? new ResponseEntity<>(null, HttpStatus.NOT_FOUND) :
-                    new ResponseEntity<>(films, HttpStatus.OK);
+            return service.findTopFilmsByGenreAndYear(count, genreId.get(), year.get())
+                    .map(films -> new ResponseEntity<>(films, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
         } else if (genreId.isPresent()) {
-            films = service.findTopFilmsByGenre(count, genreId.get());
-            return films == null ? new ResponseEntity<>(null, HttpStatus.NOT_FOUND) :
-                    new ResponseEntity<>(films, HttpStatus.OK);
+            return service.findTopFilmsByGenre(count, genreId.get())
+                    .map(films -> new ResponseEntity<>(films, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
         } else if (year.isPresent()) {
-            films = service.findTopFilmsByYear(count, year.get());
-            return films == null ? new ResponseEntity<>(null, HttpStatus.NOT_FOUND) :
-                    new ResponseEntity<>(films, HttpStatus.OK);
+            return service.findTopFilmsByYear(count, year.get())
+                    .map(films -> new ResponseEntity<>(films, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
         } else {
-            films = service.findTopLikableFilms(count);
-            return new ResponseEntity<>(films, HttpStatus.OK);
+            return new ResponseEntity<>(service.findTopLikableFilms(count), HttpStatus.OK);
         }
     }
 }

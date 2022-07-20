@@ -52,16 +52,14 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public ResponseEntity<List<User>> findUserFriends(@PathVariable long id) {
-        List<User> userFriends = service.getListOfFriends(id);
-        return userFriends == null ? new ResponseEntity<>(null, HttpStatus.NOT_FOUND) :
-                new ResponseEntity<>(userFriends, HttpStatus.OK);
+        return service.getListOfFriends(id).map(friends -> new ResponseEntity<>(friends, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public ResponseEntity<List<User>> findCommonFriends(@PathVariable long id, @PathVariable long otherId) {
-        List<User> commonFriends = service.getListOfCommonFriends(id, otherId);
-        return commonFriends == null ? new ResponseEntity<>(null, HttpStatus.NOT_FOUND) :
-                new ResponseEntity<>(commonFriends, HttpStatus.OK);
+        return service.getListOfCommonFriends(id, otherId).map(friends -> new ResponseEntity<>(friends, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/{id}/friends/{friendId}")

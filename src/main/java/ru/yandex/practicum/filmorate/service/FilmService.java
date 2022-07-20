@@ -75,27 +75,27 @@ public class FilmService {
         return storage.findTopLikableFilms(count);
     }
 
-    public List<Film> findTopFilmsByYear(long count, int year) {
+    public Optional<List<Film>> findTopFilmsByYear(long count, int year) {
         if (year > CINEMA_BIRTHDAY.getYear()) {
-            return storage.findTopFilmsByYear(count, year);
+            return Optional.of(storage.findTopFilmsByYear(count, year));
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 
-    public List<Film> findTopFilmsByGenre(long count, int genreId) {
+    public Optional<List<Film>> findTopFilmsByGenre(long count, int genreId) {
         if (genreStorage.findById(genreId).isPresent()) {
-            return storage.findTopFilmsByGenre(count, genreId);
+            return Optional.of(storage.findTopFilmsByGenre(count, genreId));
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 
-    public List<Film> findTopFilmsByGenreAndYear(long count, int genreId, int year) {
+    public Optional<List<Film>> findTopFilmsByGenreAndYear(long count, int genreId, int year) {
         if (genreStorage.findById(genreId).isPresent() && year > CINEMA_BIRTHDAY.getYear()) {
-            return storage.findTopFilmsByGenreAndYear(count, genreId, year);
+            return Optional.of(storage.findTopFilmsByGenreAndYear(count, genreId, year));
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 
