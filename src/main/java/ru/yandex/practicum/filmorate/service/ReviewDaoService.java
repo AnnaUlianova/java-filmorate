@@ -134,7 +134,7 @@ public class ReviewDaoService {
     private Review mapRowToReview(ResultSet resultSet, int rowNum) throws SQLException {
 
         return Review.builder()
-                .reviewId(resultSet.getLong("review_id"))
+                .id(resultSet.getLong("review_id"))
                 .content(resultSet.getString("content"))
                 .isPositive(resultSet.getBoolean("is_positive"))
                 .userId(resultSet.getLong("user_id"))
