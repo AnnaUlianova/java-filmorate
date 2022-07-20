@@ -42,15 +42,83 @@ CREATE TABLE users (
     CHECK (email <> '' AND login <> '')
 );
 
-CREATE TABLE friendship (
-    to_user_id BIGINT REFERENCES users (user_id) ON DELETE CASCADE,
-    from_user_id BIGINT REFERENCES users (user_id) ON DELETE CASCADE,
-    accepted BOOLEAN,
-    PRIMARY KEY (to_user_id, from_user_id)
+CREATE TABLE friendship(
+                           to_user_id   BIGINT REFERENCES users (user_id) ON DELETE CASCADE,
+                           from_user_id BIGINT REFERENCES users (user_id) ON DELETE CASCADE,
+                           accepted     BOOLEAN,
+                           PRIMARY KEY (to_user_id, from_user_id)
 );
 
-CREATE TABLE films_likes (
+CREATE TABLE films_likes
+(
     film_id BIGINT REFERENCES films (film_id) ON DELETE CASCADE,
     user_id BIGINT REFERENCES users (user_id) ON DELETE CASCADE,
     PRIMARY KEY (film_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS reviews
+(
+    review_id
+    BIGINT
+    generated
+    by
+    default as
+    identity
+    primary
+    key,
+    content
+    VARCHAR,
+    is_positive
+    BOOLEAN,
+    user_id
+    BIGINT,
+    film_id
+    BIGINT,
+    useful
+    INTEGER,
+    FOREIGN
+    KEY
+(
+    film_id
+) REFERENCES films
+(
+    film_id
+),
+    FOREIGN KEY
+(
+    user_id
+) REFERENCES users
+(
+    user_id
+)
+    );
+
+CREATE TABLE IF NOT EXISTS users_reviews
+(
+    user_id
+    BIGINT,
+    review_id
+    BIGINT,
+    is_helpful
+    BOOLEAN,
+    PRIMARY
+    KEY
+(
+    user_id,
+    review_id
+),
+    FOREIGN KEY
+(
+    user_id
+) REFERENCES users
+(
+    user_id
+),
+    FOREIGN KEY
+(
+    review_id
+) REFERENCES reviews
+(
+    review_id
+)
+    );
