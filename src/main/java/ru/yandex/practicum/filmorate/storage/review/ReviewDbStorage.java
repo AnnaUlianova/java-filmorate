@@ -41,6 +41,9 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review addReview(Review review) throws ValidationException {
+        if (review.getUserId() < 0) {
+            throw new UserNotFoundException("id < 0");
+        }
         if (isReviewValid(review)) {
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(connection -> {
@@ -69,10 +72,7 @@ public class ReviewDbStorage implements ReviewStorage {
             jdbcTemplate.update(QUERY_UPDATE_REVIEW_BY_ID
                     , review.getContent()
                     , review.getIsPositive()
-
                     , review.getReviewId());
-
-
         }
         return review;
     }
