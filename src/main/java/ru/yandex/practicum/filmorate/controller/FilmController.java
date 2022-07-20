@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -62,8 +63,24 @@ public class FilmController {
                 : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/popular")
-    public ResponseEntity<List<Film>> findTopLikableFilms(@RequestParam(defaultValue = "10") long count) {
-        return new ResponseEntity<>(service.findTopLikableFilms(count), HttpStatus.OK);
+    @GetMapping(value = "/popular")
+    public ResponseEntity<List<Film>> findTopLikableFilms(@RequestParam(defaultValue = "10") long count,
+                                                          @RequestParam Optional<Integer> genreId,
+                                                          @RequestParam Optional<Integer> year) {
+        if (genreId.isPresent() && year.isPresent()) {
+            return service.findTopFilmsByGenreAndYear(count, genreId.get(), year.get())
+                    .map(films -> new ResponseEntity<>(films, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        } else if (genreId.isPresent()) {
+            return service.findTopFilmsByGenre(count, genreId.get())
+                    .map(films -> new ResponseEntity<>(films, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        } else if (year.isPresent()) {
+            return service.findTopFilmsByYear(count, year.get())
+                    .map(films -> new ResponseEntity<>(films, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        } else {
+            return new ResponseEntity<>(service.findTopLikableFilms(count), HttpStatus.OK);
+        }
     }
 }

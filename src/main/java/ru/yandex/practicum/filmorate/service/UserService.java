@@ -41,14 +41,22 @@ public class UserService {
         return storage.deleteById(id);
     }
 
-    public List<User> getListOfFriends(long id) {
-        return storage.getListOfFriends(id);
+    public Optional<List<User>> getListOfFriends(long id) {
+        if (storage.findById(id).isPresent()) {
+            return Optional.of(storage.getListOfFriends(id));
+        }
+        return Optional.empty();
     }
 
-    public List<User> getListOfCommonFriends(long id, long otherId) {
-        return getListOfFriends(id).stream()
-                .filter(getListOfFriends(otherId)::contains)
-                .collect(Collectors.toList());
+    public Optional<List<User>> getListOfCommonFriends(long id, long otherId) {
+        Optional<List<User>> userFriends = getListOfFriends(id);
+        Optional<List<User>> otherUserFriends = getListOfFriends(otherId);
+
+        if (userFriends.isPresent() && otherUserFriends.isPresent())
+            return Optional.of(userFriends.get().stream()
+                    .filter(user -> otherUserFriends.get().contains(user))
+                    .collect(Collectors.toList()));
+        return Optional.empty();
     }
 
     public boolean addToFriends(long id, long friendId) {

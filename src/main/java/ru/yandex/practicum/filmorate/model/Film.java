@@ -32,11 +32,4 @@ public class Film {
     @NotNull
     private LocalDate releaseDate;
 
-    private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
-
-    @AssertTrue(message = "Release date should be later than 28.12.1895")
-    private boolean isAfterCinemaBirthday() {
-        return releaseDate.isAfter(CINEMA_BIRTHDAY);
-    }
-
 }
