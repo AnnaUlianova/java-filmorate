@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,5 +83,16 @@ public class FilmController {
         } else {
             return new ResponseEntity<>(service.findTopLikableFilms(count), HttpStatus.OK);
         }
+    }
+
+    // GET /films/director/{directorId}?sortBy=[year,likes]
+    @GetMapping("/director/{directorId}")
+    public ResponseEntity<Collection<Film>> findDirectorFilms(@PathVariable long directorId,
+                                                              @RequestParam(defaultValue = "id") String sortBy) {
+        Collection<Film> films = service.getDirectorFilms(directorId, sortBy);
+        if (films.isEmpty()) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(films, HttpStatus.OK);
     }
 }

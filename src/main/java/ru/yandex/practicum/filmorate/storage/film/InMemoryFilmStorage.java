@@ -27,6 +27,11 @@ public class InMemoryFilmStorage implements FilmStorage {
         likes = new HashMap<>();
     }
 
+    @Override
+    public Collection<Film> getDirectorFilms(long DirectorId, String sortBy) {
+        return null;
+    }
+
     private long generateId() {
         return ++filmId;
     }
