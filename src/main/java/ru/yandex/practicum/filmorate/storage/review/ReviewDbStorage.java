@@ -55,24 +55,24 @@ public class ReviewDbStorage implements ReviewStorage {
                 return stmt;
             }, keyHolder);
 
-            review.setId(keyHolder.getKey().longValue());
+            review.setReviewId(keyHolder.getKey().longValue());
             return review;
         }
-        log.info("ValidationException: Ревью c id = \"{}\" не прошло валидацию", review.getId());
+        log.info("ValidationException: Ревью c id = \"{}\" не прошло валидацию", review.getReviewId());
         throw new ValidationException("Ревью не прошло валидацию");
     }
 
     @Override
     public Review updateReview(Review review) throws ValidationException {
-        if (review.getId() < 0) {
-            log.info("ReviewNotFoundException: Ревью c id = \"{}\" не найдено", review.getId());
+        if (review.getReviewId() < 0) {
+            log.info("ReviewNotFoundException: Ревью c id = \"{}\" не найдено", review.getReviewId());
             throw new ReviewNotFoundException("Ревью не найдено");
         }
         if (isReviewValid(review)) {
             jdbcTemplate.update(QUERY_UPDATE_REVIEW_BY_ID
                     , review.getContent()
                     , review.getIsPositive()
-                    , review.getId());
+                    , review.getReviewId());
         }
         return review;
     }
@@ -86,7 +86,7 @@ public class ReviewDbStorage implements ReviewStorage {
     private Review mapRowToReview(ResultSet resultSet, int rowNum) throws SQLException {
 
         return Review.builder()
-                .id(resultSet.getLong("review_id"))
+                .reviewId(resultSet.getLong("review_id"))
                 .content(resultSet.getString("content"))
                 .isPositive(resultSet.getBoolean("is_positive"))
                 .userId(resultSet.getLong("user_id"))
