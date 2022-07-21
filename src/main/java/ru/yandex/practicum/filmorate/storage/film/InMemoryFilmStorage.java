@@ -110,10 +110,4 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.get(id).setLikes_count(likes.get(id).size());
         return true;
     }
-
-    @Override
-    public List<Film> getUserFilms(long userId) {
-        return null;
-    }
-
 }

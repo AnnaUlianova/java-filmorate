@@ -6,7 +6,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
@@ -66,10 +65,5 @@ public class FilmController {
     @GetMapping("/popular")
     public ResponseEntity<List<Film>> findTopLikableFilms(@RequestParam(defaultValue = "10") long count) {
         return new ResponseEntity<>(service.findTopLikableFilms(count), HttpStatus.OK);
-    }
-    @GetMapping(value = "/common")
-    public ResponseEntity<List<Film>> findTopCommonFilms(@RequestParam long userId, @RequestParam long friendId) {
-        return service.findTopCommonFilms(userId, friendId).map(film -> new ResponseEntity<>(film, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 }
