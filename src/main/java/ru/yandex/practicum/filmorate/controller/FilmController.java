@@ -95,4 +95,9 @@ public class FilmController {
         }
         return new ResponseEntity<>(films, HttpStatus.OK);
     }
+    @GetMapping("/user/{id}/recommendations")
+    public ResponseEntity<List<Film>> getRecommendationsForUser(@PathVariable("id") long userId) {
+        return service.getRecommendations(userId).map(film -> new ResponseEntity<>(film, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+    }
 }

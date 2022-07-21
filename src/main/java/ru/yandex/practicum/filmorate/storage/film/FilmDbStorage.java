@@ -66,6 +66,18 @@ public class FilmDbStorage implements FilmStorage {
                     "WHERE fd.director_id = ? AND f.film_id = fd.film_id " +
                     "ORDER BY f.film_id";
 
+    public static final String SELECT_RECOMMENDATIONS = "SELECT * FROM films " +
+            "WHERE film_id " +
+            "          IN (SELECT DISTINCT l.film_id FROM films_likes AS l " +
+            "                  WHERE l.user_id " +
+            "                      IN (SELECT l.user_id FROM films_likes AS l " +
+            "                          WHERE l.film_id " +
+            "                              IN (SELECT f.film_id FROM films AS f " +
+            "                                        RIGHT JOIN likes AS l ON f.film_id = l.film_id " +
+            "                                  WHERE l.user_id = ?)" +
+            "                              AND l.user_id <> ?)" +
+            "                    AND l.film_id NOT IN (SELECT l.film_id FROM likes AS l WHERE l.user_id = ?));";
+
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
                          @Qualifier("MPADbStorage") MPAStorage mpaStorage,
@@ -208,6 +220,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         return films;
     }
+
     public List<Film> findTopFilmsByGenreAndYear(long count, int genreId, int year) {
         List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_YEAR_AND_GENRE, this::mapRowToFilm,
                 genreId, year, count);
@@ -249,6 +262,11 @@ public class FilmDbStorage implements FilmStorage {
         Set<Director> directorSet = directorStorage.getFilmDirectors(film.getId())
                 .stream().collect(Collectors.toSet());
         film.setDirectors(directorSet);
+    }
+
+    @Override
+    public List<Film> getRecommendationsForUser(long userId) {
+        return jdbcTemplate.query(SELECT_RECOMMENDATIONS, this::mapRowToFilm, userId, userId, userId);
     }
 
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {

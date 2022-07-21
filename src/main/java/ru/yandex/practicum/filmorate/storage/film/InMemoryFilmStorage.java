@@ -32,6 +32,11 @@ public class InMemoryFilmStorage implements FilmStorage {
         return null;
     }
 
+    @Override
+    public List<Film> getRecommendationsForUser(long userId) {
+        return null;
+    }
+
     private long generateId() {
         return ++filmId;
     }
