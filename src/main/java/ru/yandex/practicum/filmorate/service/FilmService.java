@@ -71,6 +71,7 @@ public class FilmService {
                 .limit(count)
                 .collect(Collectors.toList());
     }
+
     public Optional<List<Film>> findTopCommonFilms(long userId, long friendId) {
         if (userService.findUserById(userId).isPresent() &&
                 userService.findUserById(friendId).isPresent()) {
@@ -80,9 +81,5 @@ public class FilmService {
                     .collect(Collectors.toList()));
         }
         return Optional.empty();
-    }
-
-    public List<Film> getUserFilms(long id) {
-        return storage.getUserFilms(id);
     }
 }
