@@ -8,6 +8,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MPAStorage;
 
@@ -39,6 +40,8 @@ public class FilmDbStorage implements FilmStorage {
     private static final String GET_FILM_GENRE = "SELECT genre_id FROM films_genres WHERE film_id = ?";
     private static final String ADD_FILM_GENRE = "INSERT INTO films_genres(film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRE = "DELETE FROM films_genres WHERE film_id = ?";
+    private static final String FIND_FILMS_BY_USER = "SELECT * FROM films WHERE film_id IN " +
+            "(SELECT film_id FROM films_likes WHERE user_id = ?) ORDER BY likes_count DESC";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
@@ -151,6 +154,15 @@ public class FilmDbStorage implements FilmStorage {
                 jdbcTemplate.update(ADD_FILM_GENRE, film.getId(), genre.getId());
             }
         }
+    }
+
+    public List<Film> getUserFilms(long userId) {
+        List<Film> userFilms = jdbcTemplate.query(FIND_FILMS_BY_USER, this::mapRowToFilm, userId);
+        for (Film film : userFilms) {
+            setGenresFromDB(film);
+            //setDirectorsFromDB(film);
+        }
+        return userFilms;
     }
 
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
