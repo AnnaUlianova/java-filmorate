@@ -32,12 +32,12 @@ public class FilmService {
         this.genreStorage = genreStorage;
     }
 
-    public Film createFilm(Film film) {
+    public Film createFilm(Film film) throws ValidationException {
         validateReleaseDate(film);
         return storage.create(film);
     }
 
-    public Optional<Film> updateFilm(Film film) {
+    public Optional<Film> updateFilm(Film film) throws ValidationException {
         validateReleaseDate(film);
         return storage.update(film);
     }
@@ -102,7 +102,7 @@ public class FilmService {
         }
     }
 
-    private void validateReleaseDate(Film film) {
+    private void validateReleaseDate(Film film) throws ValidationException {
         if (film.getReleaseDate().isBefore(CINEMA_BIRTHDAY)) {
             throw new ValidationException("Release date should be later than 28.12.1895");
         }

@@ -1,17 +1,20 @@
 package ru.yandex.practicum.filmorate.storage.review;
 
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.util.List;
 
-public interface ReviewStorage {
+public interface ReviewStorage extends Storage<Review> {
 
-    List<Review> getAllReviews();
+    void addLikeToReview(Long reviewId, Long userId);
 
-    Review addReview(Review review) throws ValidationException;
+    void addDislikeToReview(Long reviewId, Long userId);
 
-    Review updateReview(Review review) throws ValidationException;
+    void deleteLikeFromReview(Long reviewId, Long userId);
 
-    void deleteReview(Long reviewId);
+    void deleteDislikeFromReview(Long reviewId, Long userId);
+
+    List<Review> getReviewSorted(Long filmId, int count);
+
 }

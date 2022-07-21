@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.service.ReviewDaoService;
+import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
 
@@ -16,31 +16,31 @@ import java.util.List;
 @RequestMapping("/reviews")
 public class ReviewController {
 
-    private final ReviewDaoService reviewDaoService;
+    private final ReviewService reviewService;
 
     @Autowired
-    public ReviewController(ReviewDaoService reviewDaoService) {
-        this.reviewDaoService = reviewDaoService;
+    public ReviewController(ReviewService reviewService) {
+        this.reviewService = reviewService;
     }
 
     @PostMapping
     public Review addReview(@RequestBody Review review) throws ValidationException {
-        return reviewDaoService.addReview(review);
+        return reviewService.addReview(review);
     }
 
     @PutMapping
     public Review updateReview(@RequestBody Review review) throws ValidationException {
-        return reviewDaoService.updateReview(review);
+        return reviewService.updateReview(review);
     }
 
     @DeleteMapping("/{id}")
     public void removeReview(@PathVariable("id") long reviewId) {
-        reviewDaoService.deleteReview(reviewId);
+        reviewService.deleteReview(reviewId);
     }
 
     @GetMapping("/{id}")
     public Review getReviewById(@PathVariable("id") long reviewId) {
-        return reviewDaoService.getReviewById(reviewId);
+        return reviewService.getReviewById(reviewId);
     }
 
     @GetMapping
@@ -54,35 +54,35 @@ public class ReviewController {
                 throw new IncorrectParameterException("Некорректно указан параметр count");
             }
         }
-        return reviewDaoService.getReviewSorted(filmId, count);
+        return reviewService.getReviewSorted(filmId, count);
     }
 
     @PutMapping("{id}/like/{userId}")
     public void addLikeToReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewDaoService.addLikeToReview(reviewId, userId);
+        reviewService.addLikeToReview(reviewId, userId);
     }
 
     @PutMapping("{id}/dislike/{userId}")
     public void addDislikeToReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewDaoService.addDislikeToReview(reviewId, userId);
+        reviewService.addDislikeToReview(reviewId, userId);
     }
 
     @DeleteMapping("{id}/like/{userId}")
     public void removeLikeFromReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewDaoService.deleteLikeFromReview(reviewId, userId);
+        reviewService.deleteLikeFromReview(reviewId, userId);
     }
 
     @DeleteMapping("{id}/dislike/{userId}")
     public void removeDislikeFromReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewDaoService.deleteDislikeFromReview(reviewId, userId);
+        reviewService.deleteDislikeFromReview(reviewId, userId);
     }
 }
 
