@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface ReviewStorage extends Storage<Review> {
 
-    void addLikeToReview(Long reviewId, Long userId);
+    boolean addLikeToReview(Long reviewId, Long userId);
 
-    void addDislikeToReview(Long reviewId, Long userId);
+    boolean addDislikeToReview(Long reviewId, Long userId);
 
-    void deleteLikeFromReview(Long reviewId, Long userId);
+    boolean deleteLikeFromReview(Long reviewId, Long userId);
 
-    void deleteDislikeFromReview(Long reviewId, Long userId);
+    boolean deleteDislikeFromReview(Long reviewId, Long userId);
 
     List<Review> getReviewSorted(Long filmId, int count);
 

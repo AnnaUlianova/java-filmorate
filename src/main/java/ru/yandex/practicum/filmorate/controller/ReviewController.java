@@ -1,7 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
@@ -9,42 +10,42 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
+import javax.validation.Valid;
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
-@Slf4j
 @RequestMapping("/reviews")
 public class ReviewController {
 
-    private final ReviewService reviewService;
-
-    @Autowired
-    public ReviewController(ReviewService reviewService) {
-        this.reviewService = reviewService;
-    }
+    private final ReviewService service;
 
     @PostMapping
-    public Review addReview(@RequestBody Review review) throws ValidationException {
-        return reviewService.addReview(review);
+    public Review addReview(@Valid @RequestBody Review review) throws ValidationException {
+        return service.addReview(review);
     }
 
     @PutMapping
-    public Review updateReview(@RequestBody Review review) throws ValidationException {
-        return reviewService.updateReview(review);
+    public ResponseEntity<Review> updateReview(@Valid @RequestBody Review review) throws ValidationException {
+        return service.updateReview(review).map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id}")
-    public void removeReview(@PathVariable("id") long reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ResponseEntity<Review> removeReview(@PathVariable("id") long reviewId) {
+        return service.deleteById(reviewId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+
     }
 
     @GetMapping("/{id}")
-    public Review getReviewById(@PathVariable("id") long reviewId) {
-        return reviewService.getReviewById(reviewId);
+    public ResponseEntity<Review> getReviewById(@PathVariable("id") long reviewId) {
+        return service.getReviewById(reviewId).map(film -> new ResponseEntity<>(film, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
     @GetMapping
-    public List<Review> getMostUsefulReviews(
+    public ResponseEntity<List<Review>> getMostUsefulReviews(
             @RequestParam(required = false) Long filmId,
             @RequestParam(defaultValue = "10", required = false) int count) {
         if (filmId != null) {
@@ -54,35 +55,42 @@ public class ReviewController {
                 throw new IncorrectParameterException("Некорректно указан параметр count");
             }
         }
-        return reviewService.getReviewSorted(filmId, count);
+        return new ResponseEntity<>(service.getReviewSorted(filmId, count), HttpStatus.OK);
     }
 
     @PutMapping("{id}/like/{userId}")
-    public void addLikeToReview(
+    public ResponseEntity<Review> addLikeToReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewService.addLikeToReview(reviewId, userId);
+        return service.addLikeToReview(reviewId, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("{id}/dislike/{userId}")
-    public void addDislikeToReview(
+    public ResponseEntity<Review> addDislikeToReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewService.addDislikeToReview(reviewId, userId);
+        return service.addDislikeToReview(reviewId, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+
     }
 
     @DeleteMapping("{id}/like/{userId}")
-    public void removeLikeFromReview(
+    public ResponseEntity<Review> removeLikeFromReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewService.deleteLikeFromReview(reviewId, userId);
+        return service.deleteLikeFromReview(reviewId, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+
     }
 
     @DeleteMapping("{id}/dislike/{userId}")
-    public void removeDislikeFromReview(
+    public ResponseEntity<Review> removeDislikeFromReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        reviewService.deleteDislikeFromReview(reviewId, userId);
+        return service.deleteDislikeFromReview(reviewId, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+
     }
 }
 
