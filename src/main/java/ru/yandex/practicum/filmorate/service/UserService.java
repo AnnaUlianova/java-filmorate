@@ -46,9 +46,7 @@ public class UserService {
     }
 
     public List<User> getListOfCommonFriends(long id, long otherId) {
-        return getListOfFriends(id).stream()
-                .filter(getListOfFriends(otherId)::contains)
-                .collect(Collectors.toList());
+        return getListOfFriends(id).stream().filter(getListOfFriends(otherId)::contains).collect(Collectors.toList());
     }
 
     public boolean addToFriends(long id, long friendId) {

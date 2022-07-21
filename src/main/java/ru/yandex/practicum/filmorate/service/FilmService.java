@@ -65,20 +65,12 @@ public class FilmService {
     }
 
     public List<Film> findTopLikableFilms(long count) {
-        return storage.findAll()
-                .stream()
-                .sorted(Comparator.comparing(Film::getLikes_count).reversed())
-                .limit(count)
-                .collect(Collectors.toList());
+        return storage.findAll().stream().sorted(Comparator.comparing(Film::getLikes_count).reversed()).limit(count).collect(Collectors.toList());
     }
 
     public Optional<List<Film>> findTopCommonFilms(long userId, long friendId) {
-        if (userService.findUserById(userId).isPresent() &&
-                userService.findUserById(friendId).isPresent()) {
-            return Optional.of(storage.getUserFilms(userId)
-                    .stream()
-                    .filter(storage.getUserFilms(friendId)::contains)
-                    .collect(Collectors.toList()));
+        if (userService.findUserById(userId).isPresent() && userService.findUserById(friendId).isPresent()) {
+            return Optional.of(storage.getUserFilms(userId).stream().filter(storage.getUserFilms(friendId)::contains).collect(Collectors.toList()));
         }
         return Optional.empty();
     }

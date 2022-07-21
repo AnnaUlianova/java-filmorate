@@ -17,10 +17,10 @@ public class Film {
     private String name;
 
     @NotBlank(message = "Description is required")
-    @Size(max=200, message="Description must be no longer than 200 characters")
+    @Size(max = 200, message = "Description must be no longer than 200 characters")
     private String description;
 
-    @Positive(message="Duration must be positive")
+    @Positive(message = "Duration must be positive")
     private int duration;
 
     private MPA mpa;
