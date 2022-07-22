@@ -3,7 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.exception.InvalidParameterException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.review.ReviewDbStorage;
@@ -27,6 +28,10 @@ public class ReviewService {
         this.userService = userService;
     }
 
+    public List<Review> findAll() {
+        return reviewDbStorage.findAll();
+    }
+
     public Review addReview(Review review) throws ValidationException {
         if (isReviewValid(review)) {
             return reviewDbStorage.create(review);
@@ -43,22 +48,17 @@ public class ReviewService {
 
     public boolean deleteById(long reviewId) {
         return reviewDbStorage.deleteById(reviewId);
-
     }
 
     public Optional<Review> getReviewById(long reviewId) {
         return storage.findById(reviewId);
     }
 
-    public List<Review> getReviewSorted(Long filmId, int count) {
+    public Optional<List<Review>> getReviewSorted(Long filmId, int count) {
         if (filmId != null) {
-            if (filmId < 0) {
-                throw new FilmNotFoundException("Фильм не найден");
-            } else if (count < 0) {
-                throw new IncorrectParameterException("Некорректно указан параметр count");
-            }
+            return Optional.of(reviewDbStorage.getReviewSorted(filmId, count));
         }
-        return reviewDbStorage.getReviewSorted(filmId, count);
+        return Optional.empty();
     }
 
     public void addLikeToReview(Long reviewId, Long userId) {
@@ -99,17 +99,17 @@ public class ReviewService {
         return false;
     }
 
-    private boolean isReviewValid(Review review) throws ValidationException, ReviewNotFoundException {
+    private boolean isReviewValid(Review review) throws InvalidParameterException {
         if (review.getContent().length() > 1000) {
-            throw new ValidationException("отзыв содержит более 1000 символов");
+            throw new InvalidParameterException("отзыв содержит более 1000 символов");
         } else if (review.getUserId() < 0) {
-            throw new UserNotFoundException("Юзер не найден");
+            throw new InvalidParameterException("поле user_id не может быть пустым");
         } else if (review.getFilmId() < 0) {
-            throw new FilmNotFoundException("Фильм не найден");
+            throw new InvalidParameterException("поле user_id не может быть пустым");
         } else if (review.getUserId() == 0) {
-            throw new ValidationException("поле user_id не может быть пустым");
+            throw new InvalidParameterException("поле user_id не может быть пустым");
         } else if (review.getContent().length() == 0) {
-            throw new ValidationException("контент отзыва не может быть пустым");
+            throw new InvalidParameterException("контент отзыва не может быть пустым");
         }
         return true;
     }

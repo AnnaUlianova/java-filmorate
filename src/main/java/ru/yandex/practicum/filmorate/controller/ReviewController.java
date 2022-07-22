@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -44,9 +45,15 @@ public class ReviewController {
 
     @GetMapping
     public ResponseEntity<List<Review>> getMostUsefulReviews(
-            @RequestParam(required = false) Long filmId,
-            @RequestParam(defaultValue = "10", required = false) int count) {
-        return new ResponseEntity<>(service.getReviewSorted(filmId, count), HttpStatus.OK);
+            @RequestParam Optional<Long> filmId,
+            @RequestParam(defaultValue = "10") int count) {
+        if (filmId.isPresent()) {
+            return service.getReviewSorted(filmId.get(), count)
+                    .map(films -> new ResponseEntity<>(films, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        } else {
+            return new ResponseEntity<>(service.findAll(), HttpStatus.OK);
+        }
     }
 
     @PutMapping("{id}/like/{userId}")
