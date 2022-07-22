@@ -3,10 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ReviewNotFoundException;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.review.ReviewDbStorage;
@@ -54,27 +51,32 @@ public class ReviewService {
     }
 
     public List<Review> getReviewSorted(Long filmId, int count) {
+        if (filmId != null) {
+            if (filmId < 0) {
+                throw new FilmNotFoundException("Фильм не найден");
+            } else if (count < 0) {
+                throw new IncorrectParameterException("Некорректно указан параметр count");
+            }
+        }
         return reviewDbStorage.getReviewSorted(filmId, count);
     }
 
-    public boolean addLikeToReview(Long reviewId, Long userId) {
+    public void addLikeToReview(Long reviewId, Long userId) {
         Optional<User> optUser = userService.findUserById(userId);
         Optional<Review> optReview = storage.findById(userId);
 
         if (optUser.isPresent() && optReview.isPresent()) {
-            return storage.addLikeToReview(reviewId, userId);
+            storage.addLikeToReview(reviewId, userId);
         }
-        return false;
     }
 
-    public boolean addDislikeToReview(Long reviewId, Long userId) {
+    public void addDislikeToReview(Long reviewId, Long userId) {
         Optional<User> optUser = userService.findUserById(userId);
         Optional<Review> optReview = storage.findById(userId);
 
         if (optUser.isPresent() && optReview.isPresent()) {
             reviewDbStorage.addDislikeToReview(reviewId, userId);
         }
-        return false;
     }
 
     public boolean deleteLikeFromReview(Long reviewId, Long userId) {
