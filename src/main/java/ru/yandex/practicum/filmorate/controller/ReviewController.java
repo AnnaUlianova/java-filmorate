@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
@@ -48,31 +46,21 @@ public class ReviewController {
     public ResponseEntity<List<Review>> getMostUsefulReviews(
             @RequestParam(required = false) Long filmId,
             @RequestParam(defaultValue = "10", required = false) int count) {
-        if (filmId != null) {
-            if (filmId < 0) {
-                throw new FilmNotFoundException("Фильм не найден");
-            } else if (count < 0) {
-                throw new IncorrectParameterException("Некорректно указан параметр count");
-            }
-        }
         return new ResponseEntity<>(service.getReviewSorted(filmId, count), HttpStatus.OK);
     }
 
     @PutMapping("{id}/like/{userId}")
-    public ResponseEntity<Review> addLikeToReview(
+    public void addLikeToReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        return service.addLikeToReview(reviewId, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
-                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        service.addLikeToReview(reviewId, userId);
     }
 
     @PutMapping("{id}/dislike/{userId}")
-    public ResponseEntity<Review> addDislikeToReview(
+    public void addDislikeToReview(
             @PathVariable("id") Long reviewId,
             @PathVariable Long userId) {
-        return service.addDislikeToReview(reviewId, userId) ? new ResponseEntity<>(null, HttpStatus.OK)
-                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-
+        service.addDislikeToReview(reviewId, userId);
     }
 
     @DeleteMapping("{id}/like/{userId}")
@@ -93,4 +81,3 @@ public class ReviewController {
 
     }
 }
-

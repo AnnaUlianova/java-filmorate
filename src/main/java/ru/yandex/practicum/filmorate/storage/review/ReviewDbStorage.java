@@ -102,27 +102,31 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public void addLikeToReview(Long reviewId, Long userId) {
+    public boolean addLikeToReview(Long reviewId, Long userId) {
         jdbcTemplate.update(QUERY_INSERT_INTO_USERS_REVIEWS, true, userId, reviewId);
         jdbcTemplate.update(QUERY_INCREASE_REVIEW_USEFUL, reviewId);
+        return false;
     }
 
     @Override
-    public void addDislikeToReview(Long reviewId, Long userId) {
+    public boolean addDislikeToReview(Long reviewId, Long userId) {
         jdbcTemplate.update(QUERY_INSERT_INTO_USERS_REVIEWS, false, userId, reviewId);
         jdbcTemplate.update(QUERY_DECREASE_REVIEW_USEFUL, reviewId);
+        return false;
     }
 
     @Override
-    public void deleteLikeFromReview(Long reviewId, Long userId) {
+    public boolean deleteLikeFromReview(Long reviewId, Long userId) {
         jdbcTemplate.update(QUERY_DELETE_LIKE_FROM_USERS_REVIEWS, userId, reviewId);
         jdbcTemplate.queryForObject(QUERY_DECREASE_REVIEW_USEFUL, this::mapRowToReview, reviewId);
+        return false;
     }
 
     @Override
-    public void deleteDislikeFromReview(Long reviewId, Long userId) {
+    public boolean deleteDislikeFromReview(Long reviewId, Long userId) {
         jdbcTemplate.update(QUERY_DELETE_LIKE_FROM_USERS_REVIEWS, userId, reviewId);
         jdbcTemplate.queryForObject(QUERY_DECREASE_REVIEW_USEFUL, this::mapRowToReview, reviewId);
+        return false;
     }
 
     @Override
