@@ -95,4 +95,6 @@ public class FilmController {
         }
         return new ResponseEntity<>(films, HttpStatus.OK);
     }
+
+    //GET /films/search?query=крад&by=director,title
 }
