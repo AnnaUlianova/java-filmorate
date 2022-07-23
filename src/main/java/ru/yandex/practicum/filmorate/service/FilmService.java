@@ -32,12 +32,12 @@ public class FilmService {
         this.genreStorage = genreStorage;
     }
 
-    public Film createFilm(Film film) throws ValidationException {
+    public Film createFilm(Film film) {
         validateReleaseDate(film);
         return storage.create(film);
     }
 
-    public Optional<Film> updateFilm(Film film) throws ValidationException {
+    public Optional<Film> updateFilm(Film film) {
         validateReleaseDate(film);
         return storage.update(film);
     }
@@ -100,6 +100,10 @@ public class FilmService {
         } else {
             return Optional.empty();
         }
+    }
+
+    public List<Film> findTopFilmsByTitleFragment(String someText) {
+        return storage.findTopFilmsByTitleFragment(someText);
     }
 
     private void validateReleaseDate(Film film) throws ValidationException {
