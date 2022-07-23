@@ -96,5 +96,17 @@ public class FilmController {
         return new ResponseEntity<>(films, HttpStatus.OK);
     }
 
-    //GET /films/search?query=крад&by=director,title
+    //GET /films/search?query=some_text&by=director,title
+/*    @GetMapping("/search")
+    public ResponseEntity<Collection<Film>> findFilmsByConditions(
+            @PathVariable Optional<String> query,
+            @PathVariable Optional<List<String>> conditions
+            ) {
+        Collection<Film> films;
+
+        if (films.isEmpty()) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(films, HttpStatus.OK);
+    }*/
 }
