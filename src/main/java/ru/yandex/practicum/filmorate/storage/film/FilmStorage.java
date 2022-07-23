@@ -13,12 +13,20 @@ public interface FilmStorage extends Storage<Film> {
     boolean addLikeToFilm(long id, long userId);
 
     List<Film> findTopFilmsByGenreAndYear(long count, int genreId, int year);
+
     List<Film> findTopFilmsByGenre(long count, int genreId);
+
     List<Film> findTopFilmsByYear(long count, int year);
 
     List<Film> findTopLikableFilms(long count);
 
     List<Film> findTopFilmsByTitleFragment(String someText);
+
+    List<Film> findTopFilmsByDirectorFragment(String someText);
+
+    List<Film> findTopFilmsByTitleAndDirectorFragment(String someText);
+
+    List<Film> findAllFilmsByLikes();
 
     Collection<Film> getDirectorFilms(long DirectorId, String sortBy);
 }

@@ -66,7 +66,18 @@ public class FilmDbStorage implements FilmStorage {
                     "WHERE fd.director_id = ? AND f.film_id = fd.film_id " +
                     "ORDER BY f.film_id";
     private static final String FIND_TOP_FILMS_BY_TITLE_FRAGMENT = "SELECT * FROM films " +
-            "WHERE name ~* '?' ORDER BY likes_count";
+            "WHERE name ~* ? ORDER BY likes_count";
+    private static final String FIND_TOP_FILMS_BY_DIRECTOR_FRAGMENT = "SELECT f.* FROM FILMS AS f " +
+            "JOIN films_directors AS fd ON fd.film_id = f.film_id " +
+            "JOIN directors AS d ON fd.director_id = d.director_id " +
+            "WHERE d.name ~* ? " +
+            "ORDER BY likes_count";
+    private static final String FIND_TOP_FILMS_BY_TITLE_AND_DIRECTOR_FRAGMENT = "SELECT f.* FROM FILMS AS f " +
+            "JOIN films_directors AS fd ON fd.film_id = f.film_id " +
+            "JOIN directors AS d ON fd.director_id = d.director_id " +
+            "WHERE f.name ~* ? AND d.name ~* ? " +
+            "ORDER BY likes_count";
+    private static final String FIND_ALL_FILMS_BY_LIKES = "SELECT * FROM films ORDER BY likes_count";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
@@ -220,10 +231,41 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    @Override
     public List<Film> findTopFilmsByTitleFragment(String someText) {
         List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_TITLE_FRAGMENT, this::mapRowToFilm, someText);
         for (Film film : films) {
             setGenresFromDB(film);
+        }
+        return films;
+
+    }
+
+    @Override
+    public List<Film> findTopFilmsByDirectorFragment(String someText) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_DIRECTOR_FRAGMENT, this::mapRowToFilm, someText);
+        for (Film film : films) {
+            setGenresFromDB(film);
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findTopFilmsByTitleAndDirectorFragment(String someText) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_TITLE_AND_DIRECTOR_FRAGMENT,
+                this::mapRowToFilm, someText, someText);
+        for (Film film : films) {
+            setGenresFromDB(film);
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findAllFilmsByLikes() {
+        List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS_BY_LIKES, this::mapRowToFilm);
+        for (Film film : films) {
+            setGenresFromDB(film);
+            setDirectorsFromDB(film);
         }
         return films;
     }
