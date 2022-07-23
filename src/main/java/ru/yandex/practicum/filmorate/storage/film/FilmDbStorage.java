@@ -65,6 +65,8 @@ public class FilmDbStorage implements FilmStorage {
             "SELECT f.* FROM films_directors fd, films f " +
                     "WHERE fd.director_id = ? AND f.film_id = fd.film_id " +
                     "ORDER BY f.film_id";
+    private static final String FIND_TOP_FILMS_BY_NAME_FRAGMENT = "SELECT * FROM films " +
+            "WHERE name ~* '?' ORDER BY likes_count";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
@@ -208,9 +210,18 @@ public class FilmDbStorage implements FilmStorage {
         }
         return films;
     }
+
     public List<Film> findTopFilmsByGenreAndYear(long count, int genreId, int year) {
         List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_YEAR_AND_GENRE, this::mapRowToFilm,
                 genreId, year, count);
+        for (Film film : films) {
+            setGenresFromDB(film);
+        }
+        return films;
+    }
+
+    public List<Film> findTopFilmsByNameFragment(String someText) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_NAME_FRAGMENT, this::mapRowToFilm, someText);
         for (Film film : films) {
             setGenresFromDB(film);
         }
