@@ -11,10 +11,8 @@ import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -100,6 +98,10 @@ public class FilmService {
         } else {
             return Optional.empty();
         }
+    }
+
+    public List<Film> findTopFilmsByTitleFragment(String someText) {
+        return storage.findTopFilmsByTitleFragment(someText);
     }
 
     private void validateReleaseDate(Film film) {

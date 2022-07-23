@@ -18,7 +18,7 @@ public interface FilmStorage extends Storage<Film> {
 
     List<Film> findTopLikableFilms(long count);
 
-    List<Film> findTopFilmsByNameFragment(String someText);
+    List<Film> findTopFilmsByTitleFragment(String someText);
 
     Collection<Film> getDirectorFilms(long DirectorId, String sortBy);
 }
