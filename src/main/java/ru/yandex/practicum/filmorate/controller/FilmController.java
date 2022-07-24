@@ -97,26 +97,25 @@ public class FilmController {
         return new ResponseEntity<>(films, HttpStatus.OK);
     }
 
-    //GET /films/search?query=some_text&by=title, director
     @GetMapping("/search")
     public ResponseEntity<Collection<Film>> findFilmsByConditions(
-            @PathVariable Optional<String> query,
-            @PathVariable Optional<String> by
-            ) {
+            @RequestParam Optional<String> query,
+            @RequestParam Optional<String> by
+    ) {
         if (query.isPresent() && by.isPresent()) {
-            if (by.get().equals("title")) {                 // by Title
+            if (by.get().equals("title")) {
                 Collection<Film> films = service.findTopFilmsByTitleFragment(query.get());
                 return new ResponseEntity<>(films, HttpStatus.OK);
 
-            } else if (by.get().equals("director")) {       // by Director
+            } else if (by.get().equals("director")) {
                 Collection<Film> films = service.findTopFilmsByDirectorFragment(query.get());
                 return new ResponseEntity<>(films, HttpStatus.OK);
 
-            } else if (by.get().equals("title,director")) {    // by Title and Director
+            } else if (by.get().equals("title,director") || by.get().equals("director,title")) {
                 Collection<Film> films = service.findTopFilmsByTitleAndDirectorFragment(query.get());
                 return new ResponseEntity<>(films, HttpStatus.OK);
             }
-        } else {                                                // else return all films sorted by likes DESC
+        } else {
             Collection<Film> films = service.findAllFilmsByLikes();
             return new ResponseEntity<>(films, HttpStatus.OK);
         }
