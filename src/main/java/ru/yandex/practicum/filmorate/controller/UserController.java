@@ -5,10 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -72,5 +74,10 @@ public class UserController {
     public ResponseEntity<User> deleteFromFriends(@PathVariable long id, @PathVariable long friendId) {
         return service.deleteFromFriends(id, friendId) ? new ResponseEntity<>(null, HttpStatus.OK)
                 : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/{id}/feed")
+    public ResponseEntity<Collection<Feed>> findAllFeeds(@PathVariable long id) {
+        return new ResponseEntity<>(service.findAllFeeds(id), HttpStatus.OK);
     }
 }

@@ -137,7 +137,7 @@ public class UserValidationTest {
                 .build();
 
         //When
-        UserService service = new UserService(new InMemoryUserStorage());
+        UserService service = new UserService(new InMemoryUserStorage(), null);
         service.createUser(user);
 
         //Then
