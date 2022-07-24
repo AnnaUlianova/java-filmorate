@@ -135,4 +135,24 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> findTopLikableFilms(long count) {
         return null;
     }
+
+    @Override
+    public List<Film> findTopFilmsByTitleFragment(String someText) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findTopFilmsByDirectorFragment(String someText) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findTopFilmsByTitleAndDirectorFragment(String someText) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findAllFilmsByLikes() {
+        return null;
+    }
 }

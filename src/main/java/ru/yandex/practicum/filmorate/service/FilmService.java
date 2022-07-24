@@ -102,6 +102,22 @@ public class FilmService {
         }
     }
 
+    public List<Film> findTopFilmsByTitleFragment(String someText) {
+        return storage.findTopFilmsByTitleFragment(someText);
+    }
+
+    public List<Film> findTopFilmsByDirectorFragment(String someText) {
+        return storage.findTopFilmsByDirectorFragment(someText);
+    }
+
+    public List<Film> findTopFilmsByTitleAndDirectorFragment(String someText) {
+        return storage.findTopFilmsByTitleAndDirectorFragment(someText);
+    }
+
+    public List<Film> findAllFilmsByLikes() {
+        return storage.findAllFilmsByLikes();
+    }
+
     private void validateReleaseDate(Film film) throws ValidationException {
         if (film.getReleaseDate().isBefore(CINEMA_BIRTHDAY)) {
             throw new ValidationException("Release date should be later than 28.12.1895");

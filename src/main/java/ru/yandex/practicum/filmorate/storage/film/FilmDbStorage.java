@@ -17,10 +17,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -65,6 +62,15 @@ public class FilmDbStorage implements FilmStorage {
             "SELECT f.* FROM films_directors fd, films f " +
                     "WHERE fd.director_id = ? AND f.film_id = fd.film_id " +
                     "ORDER BY f.film_id";
+    private static final String FIND_TOP_FILMS_BY_TITLE_FRAGMENT = "SELECT * FROM films " +
+            "WHERE name ~* ? ORDER BY likes_count DESC";
+    private static final String FIND_TOP_FILMS_BY_DIRECTOR_FRAGMENT = "SELECT f.* FROM FILMS AS f " +
+            "JOIN films_directors AS fd ON fd.film_id = f.film_id " +
+            "JOIN directors AS d ON fd.director_id = d.director_id " +
+            "WHERE d.name ~* ? " +
+            "ORDER BY likes_count DESC";
+    private static final String FIND_ALL_FILMS_BY_LIKES = "SELECT * FROM films ORDER BY likes_count DESC";
+
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          @Qualifier("genreDbStorage") GenreStorage genreStorage,
@@ -208,11 +214,52 @@ public class FilmDbStorage implements FilmStorage {
         }
         return films;
     }
+
     public List<Film> findTopFilmsByGenreAndYear(long count, int genreId, int year) {
         List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_YEAR_AND_GENRE, this::mapRowToFilm,
                 genreId, year, count);
         for (Film film : films) {
             setGenresFromDB(film);
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findTopFilmsByTitleFragment(String someText) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_TITLE_FRAGMENT, this::mapRowToFilm, someText);
+        for (Film film : films) {
+            setGenresFromDB(film);
+            setDirectorsFromDB(film);
+        }
+        return films;
+
+    }
+
+    @Override
+    public List<Film> findTopFilmsByDirectorFragment(String someText) {
+        List<Film> films = jdbcTemplate.query(FIND_TOP_FILMS_BY_DIRECTOR_FRAGMENT, this::mapRowToFilm, someText);
+        for (Film film : films) {
+            setGenresFromDB(film);
+            setDirectorsFromDB(film);
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> findTopFilmsByTitleAndDirectorFragment(String someText) {
+        List<Film> films = new ArrayList<>();
+        films.addAll(findTopFilmsByTitleFragment(someText));
+        films.addAll(findTopFilmsByDirectorFragment(someText));
+        films.sort(Comparator.comparingInt((Film o) -> (int) o.getLikes_count()).reversed());
+        return films;
+    }
+
+    @Override
+    public List<Film> findAllFilmsByLikes() {
+        List<Film> films = jdbcTemplate.query(FIND_ALL_FILMS_BY_LIKES, this::mapRowToFilm);
+        for (Film film : films) {
+            setGenresFromDB(film);
+            setDirectorsFromDB(film);
         }
         return films;
     }

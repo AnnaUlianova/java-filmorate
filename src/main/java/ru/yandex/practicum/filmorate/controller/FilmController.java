@@ -96,4 +96,29 @@ public class FilmController {
         }
         return new ResponseEntity<>(films, HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<Collection<Film>> findFilmsByConditions(
+            @RequestParam Optional<String> query,
+            @RequestParam Optional<String> by
+    ) {
+        if (query.isPresent() && by.isPresent()) {
+            if (by.get().equals("title")) {
+                Collection<Film> films = service.findTopFilmsByTitleFragment(query.get());
+                return new ResponseEntity<>(films, HttpStatus.OK);
+
+            } else if (by.get().equals("director")) {
+                Collection<Film> films = service.findTopFilmsByDirectorFragment(query.get());
+                return new ResponseEntity<>(films, HttpStatus.OK);
+
+            } else if (by.get().equals("title,director") || by.get().equals("director,title")) {
+                Collection<Film> films = service.findTopFilmsByTitleAndDirectorFragment(query.get());
+                return new ResponseEntity<>(films, HttpStatus.OK);
+            }
+        } else {
+            Collection<Film> films = service.findAllFilmsByLikes();
+            return new ResponseEntity<>(films, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
 }
