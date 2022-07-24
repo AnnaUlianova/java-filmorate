@@ -18,7 +18,7 @@ public class Feed {
     @NotBlank(message = "EventType is required")
     private EventTypeList eventType; // одно из значениий LIKE, REVIEW или FRIEND
     @NotBlank(message = "OperationType is required")
-    private OperationTypeList operationType; // одно из значениий REMOVE, ADD, UPDATE
+    private OperationTypeList operation; // одно из значениий REMOVE, ADD, UPDATE
     @NotBlank(message = "EventId is required")
     private Long eventId; //primary key
     @NotBlank(message = "EntityId is required")

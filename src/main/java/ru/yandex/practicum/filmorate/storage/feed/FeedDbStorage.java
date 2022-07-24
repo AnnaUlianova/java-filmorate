@@ -16,13 +16,12 @@ import java.util.Collection;
 public class FeedDbStorage implements FeedStorage {
     private static final String FIND_ALL_FEEDS = "SELECT * FROM feeds WHERE user_id = ?";
     private static final String ADD_FEED = "INSERT INTO feeds(timestamp, user_id, event_type," +
-            "operation_type, entity_id) VALUES (?, ?, ?, ?, ?)";
+            "operation, entity_id) VALUES (?, ?, ?, ?, ?)";
     private final JdbcTemplate jdbcTemplate;
 
     public FeedDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-
 
     @Override
     public void addFeed(Long userId, Feed.EventTypeList eventType,
@@ -46,7 +45,7 @@ public class FeedDbStorage implements FeedStorage {
                 .timestamp(resultSet.getLong("timestamp"))
                 .userId(resultSet.getLong("user_id"))
                 .eventType(getEventFromInteger(resultSet.getInt("event_type")))
-                .operationType(getOperationFromInteger(resultSet.getInt("operation_type")))
+                .operation(getOperationFromInteger(resultSet.getInt("operation")))
                 .eventId(resultSet.getLong("feed_id"))
                 .entityId(resultSet.getLong("entity_id"))
                 .build();

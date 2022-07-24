@@ -70,7 +70,7 @@ public class UserService {
         Optional<User> optFriend = storage.findById(friendId);
 
         if (optUser.isPresent() && optFriend.isPresent()) {
-            feedStorage.addFeed(id, Feed.EventTypeList.FRIEND, Feed.OperationTypeList.ADD,friendId);
+            feedStorage.addFeed(id, Feed.EventTypeList.FRIEND, Feed.OperationTypeList.ADD, friendId);
             return storage.addToFriends(id, friendId);
 
         }
@@ -82,7 +82,7 @@ public class UserService {
         Optional<User> optFriend = storage.findById(friendId);
 
         if (optUser.isPresent() && optFriend.isPresent()) {
-            feedStorage.addFeed(id, Feed.EventTypeList.FRIEND, Feed.OperationTypeList.REMOVE,friendId);
+            feedStorage.addFeed(id, Feed.EventTypeList.FRIEND, Feed.OperationTypeList.REMOVE, friendId);
             return storage.deleteFromFriends(id, friendId);
         }
         return false;

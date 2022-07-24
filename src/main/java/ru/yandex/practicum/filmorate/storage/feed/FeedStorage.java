@@ -8,5 +8,5 @@ import java.util.List;
 public interface FeedStorage {
     Collection<Feed> findAllFeeds(Long id);
 
-    void  addFeed(Long userId, Feed.EventTypeList eventType, Feed.OperationTypeList operationType, Long entityId);
+    void addFeed(Long userId, Feed.EventTypeList eventType, Feed.OperationTypeList operationType, Long entityId);
 }
