@@ -11,10 +11,8 @@ import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -32,12 +30,12 @@ public class FilmService {
         this.genreStorage = genreStorage;
     }
 
-    public Film createFilm(Film film) {
+    public Film createFilm(Film film) throws ValidationException {
         validateReleaseDate(film);
         return storage.create(film);
     }
 
-    public Optional<Film> updateFilm(Film film) {
+    public Optional<Film> updateFilm(Film film) throws ValidationException {
         validateReleaseDate(film);
         return storage.update(film);
     }
