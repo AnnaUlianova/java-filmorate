@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
@@ -22,14 +24,17 @@ public class FilmService {
     private final FilmStorage storage;
     private final GenreStorage genreStorage;
     private final UserService userService;
+    private final FeedStorage feedStorage;
     private static final LocalDate CINEMA_BIRTHDAY = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, UserService userService,
-                       @Qualifier("genreDbStorage") GenreStorage genreStorage) { // inMemoryFilmStorage
+                       @Qualifier("genreDbStorage") GenreStorage genreStorage,
+                       @Qualifier("feedDbStorage") FeedStorage feedStorage) { // inMemoryFilmStorage
         this.storage = filmStorage;
         this.userService = userService;
         this.genreStorage = genreStorage;
+        this.feedStorage = feedStorage;
     }
 
     public Film createFilm(Film film) throws ValidationException {
@@ -59,6 +64,7 @@ public class FilmService {
         Optional<Film> optFilm = storage.findById(id);
 
         if (optUser.isPresent() && optFilm.isPresent()) {
+            feedStorage.addFeed(userId, Feed.EventTypeList.LIKE, Feed.OperationTypeList.ADD, id);
             return storage.addLikeToFilm(id, userId);
         }
         return false;
@@ -69,6 +75,7 @@ public class FilmService {
         Optional<Film> optFilm = storage.findById(id);
 
         if (optUser.isPresent() && optFilm.isPresent() && optFilm.get().getLikes_count() > 0) {
+            feedStorage.addFeed(userId, Feed.EventTypeList.LIKE, Feed.OperationTypeList.REMOVE, id);
             return storage.removeLikeFromFilm(id, userId);
         }
         return false;
