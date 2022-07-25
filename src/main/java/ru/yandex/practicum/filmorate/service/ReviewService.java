@@ -2,11 +2,14 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.InvalidParameterException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
@@ -20,12 +23,15 @@ public class ReviewService {
     private final ReviewDbStorage reviewDbStorage;
     private final ReviewStorage storage;
     private final UserService userService;
+    private final FeedStorage feedStorage;
 
     @Autowired
-    public ReviewService(ReviewDbStorage reviewDbStorage, ReviewStorage storage, UserService userService) {
+    public ReviewService(ReviewDbStorage reviewDbStorage, ReviewStorage storage,
+                         UserService userService, @Qualifier("feedDbStorage") FeedStorage feedStorage) {
         this.reviewDbStorage = reviewDbStorage;
         this.storage = storage;
         this.userService = userService;
+        this.feedStorage = feedStorage;
     }
 
     public List<Review> findAll() {
@@ -34,19 +40,29 @@ public class ReviewService {
 
     public Review addReview(Review review) throws ValidationException {
         if (isReviewValid(review)) {
-            return reviewDbStorage.create(review);
+            review = reviewDbStorage.create(review);
+            feedStorage.addFeed(review.getUserId(), Feed.EventTypeList.REVIEW,
+                    Feed.OperationTypeList.ADD, review.getReviewId());
+            return review;
         }
         throw new ValidationException("Validation fail");
     }
 
     public Optional<Review> updateReview(Review review) throws ValidationException {
         if (isReviewValid(review)) {
-            return reviewDbStorage.update(review);
+            Optional<Review> updateReview = reviewDbStorage.update(review);
+            if (updateReview.isPresent()) {
+                feedStorage.addFeed(getReviewById(review.getReviewId()).get().getUserId(), Feed.EventTypeList.REVIEW,
+                        Feed.OperationTypeList.UPDATE, review.getReviewId());
+            }
+            return updateReview;
         }
         throw new ValidationException("Validation fail");
     }
 
     public boolean deleteById(long reviewId) {
+        feedStorage.addFeed(getReviewById(reviewId).get().getUserId(), Feed.EventTypeList.REVIEW,
+                Feed.OperationTypeList.REMOVE, getReviewById(reviewId).get().getReviewId());
         return reviewDbStorage.deleteById(reviewId);
     }
 
